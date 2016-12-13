@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"mariadb.com/shared/models"
+	"github.com/bstaijen/mariadb-for-microservices/shared/models"
 )
 
 func SendOK(w http.ResponseWriter, data interface{}) {
