@@ -18,7 +18,7 @@ func GetUserIDFromRequest(req *http.Request) (int, error) {
 	if len(queryToken) < 1 {
 		return 0, errors.New("No JWT available")
 	}
-
+	// TODO : remove secrey_key here
 	tok, err := jwt.Parse(queryToken, func(t *jwt.Token) (interface{}, error) {
 		return []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), nil
 	})

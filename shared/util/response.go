@@ -2,11 +2,18 @@ package util
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+
+	"log"
+
+	"errors"
 
 	"github.com/bstaijen/mariadb-for-microservices/shared/models"
 )
+
+func SendOKMessage(w http.ResponseWriter, message string) {
+	SendOK(w, &models.Error{Message: message})
+}
 
 func SendOK(w http.ResponseWriter, data interface{}) {
 	result, err := json.Marshal(data)
@@ -19,11 +26,19 @@ func SendOK(w http.ResponseWriter, data interface{}) {
 	}
 }
 
+func SendErrorMessage(w http.ResponseWriter, message string) {
+	SendError(w, errors.New(message))
+}
+
+func SendError(w http.ResponseWriter, err error) {
+	SendBadRequest(w, err)
+}
+
 // SendBadRequest writes a Bad Request to the ResponseWrite
 func SendBadRequest(w http.ResponseWriter, err error) {
 	e := &models.Error{Message: err.Error()}
 	var errJSON, _ = json.Marshal(e)
-	fmt.Printf("Error: %v \n", string(errJSON))
+	log.Printf("Error: %v \n", string(errJSON))
 
 	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Set("Content-Type", "application/json")
