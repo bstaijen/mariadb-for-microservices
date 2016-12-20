@@ -1,0 +1,21 @@
+<form class="form-signin" ng-submit="register()">
+    <h2 class="form-signin-heading">Registration</h2>
+
+    <input type="text" ng-model="username" class="form-control" placeholder="Username" required="" autofocus="">
+
+    <input type="email" ng-model="email" class="form-control" placeholder="Email address" required="">
+
+
+    <input type="password" ng-model="password" class="form-control" placeholder="Password" required="">
+
+
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign up</button>
+    <a href="#/login">Back to login</a>
+    <div ng-repeat="error in errorMessages" ng-hide="errorMessages.length < 1">
+        <p class="text-danger">{{error}}</p>
+    </div>
+
+    <div ng-repeat="message in successMessages" ng-hide="successMessages.length < 1">
+        <p class="text-success">{{message}}</p>
+    </div>
+</form>

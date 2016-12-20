@@ -1,0 +1,41 @@
+<post ng-repeat="photo in photos" photo="photo"></post>
+
+<!--
+<div class="panel panel-info" ng-repeat="photo in photos">
+    <div class="panel-heading">
+        <div class="panel-title">Picture <span class="pull-right">{{photo.totalVotes}} votes</span></div>
+    </div>
+    <div class="panel-body">
+        <img class="img-responsive" style="margin: 0 auto; max-width:600px;"
+             ng-src="{{buildImageUrl(photo.filename)}}"/>
+    </div>
+    <div class="panel-body text-center">
+        <button class="btn" ng-class="photo.upvote ? 'btn-success' : 'btn-default'" ng-click="upvote(photo)">
+            <i class="fa fa-3x fa-thumbs-o-up"></i>
+        </button>
+        <button class="btn" ng-class="photo.downvote ? 'btn-danger' : 'btn-default'" ng-click="downvote(photo)">
+            <i class="fa fa-3x fa-thumbs-o-down"></i>
+        </button>
+        <button class="btn btn-default">
+            <i class="fa fa-3x fa-comment-o"></i>
+        </button>
+    </div>
+    <div class="panel-body">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <div class="comment-box">
+                <textarea placeholder="Some text"></textarea>
+                <button class="btn btn-success" ng-click="comment(photo)">Send</button>
+            </div>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="col-md-6 mauto">
+            <a>View comments...</a>
+        </div>
+    </div>
+    <div class="panel-footer">
+        Image uploaded <span class="text-muted">{{displayMoment(photo.createdAt)}}</span> by <span class="text-muted">{{photo.username || '-'}}</span><br>
+    </div>
+</div>
+-->

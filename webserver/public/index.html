@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="MariaDBApp">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="assets/libs/bootstrap/3.3.4/bootstrap.min.css">
+
+    <!-- Create some padding for body -->
+    <style>
+        body {
+            min-height: 2000px;
+            padding-top: 70px;
+        }
+    </style>
+
+    <link rel="stylesheet" href="assets/css/style.css"/>
+    <link rel="stylesheet" href="assets/css/animate.css"/>
+    <link rel="stylesheet" href="assets/css/helpers.css"/>
+    <link rel="stylesheet" href="assets/libs/font-awesome-4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<nav class="navbar navbar-default navbar-fixed-top" ng-controller="NavController">
+    <div class="container">
+        <div class="navbar-header">
+            <div class="navbar-brand" href="#/">MariaDB</div>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li ng-class="{active: $route.current.activetab == 'home'}"><a href="#/">Incoming</a></li>
+                <li ng-class="{active: $route.current.activetab == 'hot'}"><a href="#/hot">Hot</a></li>
+                <li ng-class="{active: $route.current.activetab == 'toprated'}"><a href="#/toprated">Top Rated</a></li>
+                <li ng-class="{active: $route.current.activetab == 'dashboard'}"><a href="#/dashboard">Dashboard</a>
+                </li>
+                <li ng-class="{active: $route.current.activetab == 'login'}"><a href="#/login">Login</a></li>
+                <li ng-class="{active: $route.current.activetab == 'register'}"><a href="#/register">Register</a></li>
+                <li ng-class="{active: $route.current.activetab == 'logout'}"><a href="#/logout">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<h1 class="text-center">MariaDB for Microservices example</h1>
+
+<!-- Dynamically render templates -->
+<div class="container" ng-view>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="assets/libs/jquery/2.1.4/jquery.min.js"></script>
+<!-- Latest compiled and minified Bootstraps JavaScript -->
+<script src="assets/libs/bootstrap/3.3.4/bootstrap.min.js"></script>
+<!-- Angular lib -->
+<script src="assets/libs/angular/1.4.6/angular.min.js"></script>
+<script src="assets/libs/angular-route/1.4.6/angular-route.min.js"></script>
+
+<script src="assets/libs/ng-file-upload/ng-file-upload-shim.min.js"></script> <!-- for no html5 browsers support -->
+<script src="assets/libs/ng-file-upload/ng-file-upload.min.js"></script>
+
+<script src="assets/libs/momentjs/moment.js"></script>
+
+<script src="app.js"></script>
+<script src="directives/postDirective.js"></script>
+<script src="services/ApiService.js"></script>
+<script src="factories/LocalStorageFactory.js"></script>
+<script src="controllers/NavController.js"></script>
+<script src="controllers/DashboardController.js"></script>
+<script src="controllers/HomeController.js"></script>
+<script src="controllers/LoginController.js"></script>
+<script src="controllers/LogoutController.js"></script>
+<script src="controllers/RegisterController.js"></script>
+<script src="controllers/TopRatedController.js"></script>
+<script src="controllers/HotController.js"></script>
+</body>
+</html>

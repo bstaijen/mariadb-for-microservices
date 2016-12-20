@@ -1,0 +1,83 @@
+version: '2'
+
+services:
+    webserver:
+        image: "webserver"
+        ports:
+            - "4999:4999"
+        restart: always
+    authentication:
+        image: "authenticationsvc"
+        ports:
+            - "5001:5001"
+        restart: always 
+        environment:
+        - "com.mariadb.host!=authentication"
+        labels:
+        - "com.mariadb.host=authentication"
+    photo:
+        image: "photosvc"
+        ports:
+            - "5002:5002"
+        restart: always 
+    vote:
+        image: "votesvc"
+        ports:
+            - ":5003:5003"
+        restart: always
+    comment:
+        image: "commentsvc"
+        ports:
+            - "5004:5004"
+        restart: always
+    profile:
+        image: "profilesvc"
+        ports:
+            - "5000:5000"
+        restart: always
+    db:
+        image: bstaijen/mariadb-microservice-database
+        restart: always
+        environment:
+        - "MYSQL_ROOT_PASSWORD=password"
+        - "WSREP_CLUSTER_NAME=mariadb_cluster"
+        - "WSREP_CLUSTER_ADDRESS=gcomm://dbmaster:4567"
+        - "affinity:com.mariadb.cluster!=prod-cluster"
+        labels:
+        - "com.mariadb.cluster=mariadb_cluster"
+        ports:
+        - 3306:3306
+        - 4567-4568:4567-4568
+        - 4444:4444
+        depends_on:
+        - "dbmaster"
+    dbmaster:
+        image: bstaijen/mariadb-microservice-database
+        restart: always
+        environment:
+        - "MYSQL_ROOT_PASSWORD=password"
+        - "WSREP_CLUSTER_NAME=mariadb_cluster"
+        - "WSREP_CLUSTER_ADDRESS=gcomm://"
+        - "affinity:com.mariadb.cluster!=mariadb_cluster"
+        labels:
+        - "com.mariadb.cluster=mariadb_cluster" 
+        ports:
+        - 3306:3306
+        - 4567-4568:4567-4568
+        - 4444:4444
+    registrator:
+        image: gliderlabs/registrator:master
+        hostname: registrator
+        volumes:
+        - "/var/run/docker.sock:/tmp/docker.sock"
+        command: -internal consul://consul:8500
+        restart: always
+    consul:
+        image: "progrium/consul:latest"
+        hostname: "consul"
+        ports:
+        - "8400:8400"
+        - "8500:8500"
+        - "8600:53/udp"
+        command: "-server -bootstrap -ui-dir /ui"
+        restart: always

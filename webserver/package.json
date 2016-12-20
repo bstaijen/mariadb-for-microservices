@@ -1,0 +1,17 @@
+{
+  "name": "webserver",
+  "version": "0.0.1",
+  "description": "Photo Sharing Application Webserver",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.14.0",
+    "http-proxy": "^1.16.2",
+    "morgan": "^1.7.0",
+    "path": "^0.12.7"
+  }
+}

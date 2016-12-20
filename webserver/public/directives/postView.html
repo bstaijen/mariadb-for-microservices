@@ -1,0 +1,48 @@
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <div class="panel-title">{{photo.title}}</div>
+    </div>
+    <div class="panel-body">
+        <img class="img-responsive" style="margin: 0 auto; max-width:550px;"
+             ng-src="{{buildImageUrl(photo.filename)}}"/>
+    </div>
+    <div class="panel-body text-center">
+        <button class="btn" ng-class="photo.upvote ? 'btn-success' : 'btn-default'" ng-click="upvote(photo)">
+            <i class="fa fa-3x fa-thumbs-o-up"></i>
+        </button>
+        <button class="btn" ng-class="photo.downvote ? 'btn-danger' : 'btn-default'" ng-click="downvote(photo)">
+            <i class="fa fa-3x fa-thumbs-o-down"></i>
+        </button>
+        <button class="btn" ng-class="showMessages ? 'btn-info' : 'btn-default'" ng-click="toggleMessages()">
+            <i class="fa fa-3x fa-comment-o"></i>
+        </button>
+    </div>
+    <div class="panel-body text-center">
+        <span class="text-muted">{{photo.totalVotes || 0}} votes - {{photo.comments.length || 0}} comments</span>
+    </div>
+    <div class="panel-body animated fadeIn" ng-show="showMessages">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <div class="comment-box">
+                <textarea maxlength="140" ng-model="comment_text" placeholder="Leave a nice comment :)"></textarea>
+                <button class="btn btn-success" ng-click="comment(photo)">Send</button>
+            </div>
+            <div class="clearfix"></div>
+            <table class="table table-striped mt10">
+                <tbody>
+                <tr ng-repeat="comment in photo.comments | orderBy:'createdAt':true ">
+                    <td> {{comment.username}} - {{comment.comment}}
+                        <br>
+                        <span class="text-muted">{{displayMoment(comment.createdAt)}}</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="text-center"><a>TODO:Load more comments</a></div>
+        </div>
+    </div>
+
+    <div class="panel-footer">
+        Image uploaded <span class="text-muted">{{displayMoment(photo.createdAt)}}</span> by <span class="text-muted">{{photo.username || '-'}}</span><br>
+    </div>
+</div>

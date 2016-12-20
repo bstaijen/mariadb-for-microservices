@@ -1,0 +1,9 @@
+{
+    "port" : 5004,
+    "profileservicebaseurl" : "http://profile:5000/",
+    "db_username" : "comment_service",
+    "db_password" : "password",
+    "db_host" : "db",
+    "db_port": 3306,
+    "db" : "CommentService"
+}

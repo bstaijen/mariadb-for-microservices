@@ -1,0 +1,8 @@
+{
+    "port" : 5003,
+    "db_username" : "vote_service",
+    "db_password" : "password",
+    "db_host" : "db",
+    "db_port": 3306,
+    "db" : "VoteService"
+}
