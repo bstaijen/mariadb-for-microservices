@@ -1,4 +1,4 @@
-node_modules
 .idea/
-main
+node_modules/
+public/bower_components/
 access.log
