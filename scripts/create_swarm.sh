@@ -24,7 +24,7 @@ docker-machine create \
     --engine-opt="cluster-advertise=eth1:2376" master
 
 # Create 5 
-for N in 0 1 2 3 4; do 
+for N in 0 1 2 3 4 5; do 
     docker-machine create \
         --driver virtualbox \
         --virtualbox-memory 512 \

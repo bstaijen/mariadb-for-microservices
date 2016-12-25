@@ -6,61 +6,67 @@ services:
         ports:
             - "4999:4999"
         restart: always
+        environment:
+        - "affinity:com.mariadb.host!=webserver"
+        labels:
+        - "com.mariadb.host=webserver"
     authentication:
         image: "authenticationsvc"
         ports:
             - "5001:5001"
         restart: always 
         environment:
-        - "com.mariadb.host!=authentication"
+        - "affinity:com.mariadb.host!=authenticationsvc"
         labels:
-        - "com.mariadb.host=authentication"
+        - "com.mariadb.host=authenticationsvc"
     photo:
         image: "photosvc"
         ports:
             - "5002:5002"
         restart: always 
+        environment:
+        - "affinity:com.mariadb.host!=photosvc"
+        labels:
+        - "com.mariadb.host=photosvc"
     vote:
         image: "votesvc"
         ports:
-            - ":5003:5003"
+            - "5003:5003"
         restart: always
+        environment:
+        - "affinity:com.mariadb.host!=votesvc"
+        labels:
+        - "com.mariadb.host=votesvc"
     comment:
         image: "commentsvc"
         ports:
             - "5004:5004"
         restart: always
+        environment:
+        - "affinity:com.mariadb.host!=commentsvc"
+        labels:
+        - "com.mariadb.host=commentsvc"
     profile:
         image: "profilesvc"
         ports:
             - "5000:5000"
         restart: always
+        environment:
+        - "affinity:com.mariadb.host!=profilesvc"
+        labels:
+        - "com.mariadb.host=profilesvc"
     db:
-        image: bstaijen/mariadb-microservice-database
+        image: bstaijen/mariadb-microservice-database:latest
         restart: always
         environment:
         - "MYSQL_ROOT_PASSWORD=password"
-        - "WSREP_CLUSTER_NAME=mariadb_cluster"
-        - "WSREP_CLUSTER_ADDRESS=gcomm://dbmaster:4567"
-        - "affinity:com.mariadb.cluster!=prod-cluster"
+        - "CLUSTER_NAME=galeracluster"
+        - "CONSUL_HOST=consul:8500"
+        - "SERVICE_NAME=mariadb-galera"
+        - "SERVICE_TAGS=mariadb,galera,db"
+        - "affinity:com.mariadb.host!=galeracluster"
         labels:
-        - "com.mariadb.cluster=mariadb_cluster"
-        ports:
-        - 3306:3306
-        - 4567-4568:4567-4568
-        - 4444:4444
-        depends_on:
-        - "dbmaster"
-    dbmaster:
-        image: bstaijen/mariadb-microservice-database
-        restart: always
-        environment:
-        - "MYSQL_ROOT_PASSWORD=password"
-        - "WSREP_CLUSTER_NAME=mariadb_cluster"
-        - "WSREP_CLUSTER_ADDRESS=gcomm://"
-        - "affinity:com.mariadb.cluster!=mariadb_cluster"
-        labels:
-        - "com.mariadb.cluster=mariadb_cluster" 
+        - "com.mariadb.host=galeracluster"
         ports:
         - 3306:3306
         - 4567-4568:4567-4568
@@ -72,6 +78,10 @@ services:
         - "/var/run/docker.sock:/tmp/docker.sock"
         command: -internal consul://consul:8500
         restart: always
+        environment:
+        - "affinity:com.mariadb.host!=registrator"
+        labels:
+        - "com.mariadb.host=registrator"
     consul:
         image: "progrium/consul:latest"
         hostname: "consul"

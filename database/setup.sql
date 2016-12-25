@@ -25,3 +25,10 @@ GRANT ALL ON PhotoService.* TO 'photo_service'@'%';
 
 CREATE USER 'vote_service'@'%' IDENTIFIED BY 'password';
 GRANT ALL ON VoteService.* TO 'vote_service'@'%';
+
+CREATE USER 'maxscale'@'%' IDENTIFIED BY 'password';
+GRANT SELECT ON mysql.user to 'maxscale'@'%';
+GRANT SELECT ON mysql.tables_priv TO 'maxscale'@'%';
+GRANT SHOW DATABASES ON *.* TO 'maxscale'@'%';
+GRANT REPLICATION SLAVE ON *.* to 'maxscale'@'%';
+GRANT REPLICATION CLIENT ON *.* to 'maxscale'@'%';
