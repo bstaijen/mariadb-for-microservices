@@ -1,34 +1,58 @@
 package config
 
-import (
-	"encoding/json"
-	"io/ioutil"
-	"log"
-)
+import "os"
+import "strconv"
 
 // Config contains the configuration for the service
 type Config struct {
-	Port       int    `json:"port"`
-	DBUsername string `json:"db_username"`
-	DBPassword string `json:"db_password"`
-	DBHost     string `json:"db_host"`
-	DBPort     int    `json:"db_port"`
-	Database   string `json:"db"`
-	SecretKey  string `json:"secret_key"`
+	Port       int
+	DBUsername string
+	DBPassword string
+	DBHost     string
+	DBPort     int
+	Database   string
+	SecretKey  string
 }
 
 // LoadConfig returns the config from the config.json file
 func LoadConfig() Config {
 
-	file, err := ioutil.ReadFile("./config/config.json")
-	if err != nil {
-		log.Fatal("Config File Missing. ", err)
+	var config Config
+
+	if _, ok := os.LookupEnv("PORT"); ok {
+		portString := os.Getenv("PORT")
+		port, err := strconv.Atoi(portString)
+		if err != nil {
+			config.Port = port
+		}
 	}
 
-	var config Config
-	err = json.Unmarshal(file, &config)
-	if err != nil {
-		log.Fatal("Config Parse Error: ", err)
+	if _, ok := os.LookupEnv("DB_USERNAME"); ok {
+		config.DBUsername = os.Getenv("DB_USERNAME")
+	}
+
+	if _, ok := os.LookupEnv("DB_PASSWORD"); ok {
+		config.DBPassword = os.Getenv("DB_PASSWORD")
+	}
+
+	if _, ok := os.LookupEnv("DB_HOST"); ok {
+		config.DBHost = os.Getenv("DB_HOST")
+	}
+
+	if _, ok := os.LookupEnv("DB_PORT"); ok {
+		portString := os.Getenv("DB_PORT")
+		port, err := strconv.Atoi(portString)
+		if err != nil {
+			config.DBPort = port
+		}
+	}
+
+	if _, ok := os.LookupEnv("DB"); ok {
+		config.Database = os.Getenv("DB")
+	}
+
+	if _, ok := os.LookupEnv("SECRETKEY"); ok {
+		config.SecretKey = os.Getenv("SECRETKEY")
 	}
 
 	return config

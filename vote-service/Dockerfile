@@ -9,6 +9,7 @@ RUN go get github.com/urfave/negroni
 RUN go get github.com/bstaijen/mariadb-for-microservices/shared/util
 RUN go get github.com/bstaijen/mariadb-for-microservices/shared/models
 RUN go get github.com/buger/jsonparser
+RUN go get github.com/joho/godotenv
 
 # 
 ADD . /go/src/mariadb.com/vote-service/

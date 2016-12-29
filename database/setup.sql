@@ -32,3 +32,4 @@ GRANT SELECT ON mysql.tables_priv TO 'maxscale'@'%';
 GRANT SHOW DATABASES ON *.* TO 'maxscale'@'%';
 GRANT REPLICATION SLAVE ON *.* to 'maxscale'@'%';
 GRANT REPLICATION CLIENT ON *.* to 'maxscale'@'%';
+GRANT ALL ON *.* to 'maxscale'@'%';

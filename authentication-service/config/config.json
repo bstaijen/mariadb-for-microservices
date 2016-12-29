@@ -1,9 +1,0 @@
-{
-    "port" : 5001,
-    "db_username" : "profile_service",
-    "db_password" : "password",
-    "db_host" : "db",
-    "db_port": 3306,
-    "db" : "ProfileService",
-    "secret_key": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-}

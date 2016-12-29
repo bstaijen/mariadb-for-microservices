@@ -12,6 +12,8 @@ import (
 
 	// go-sql-driver/mysql is needed for the database connection
 	_ "github.com/go-sql-driver/mysql"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {

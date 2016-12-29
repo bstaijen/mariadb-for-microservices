@@ -2,6 +2,14 @@ body {
     background-color: #eee;
     min-height: inherit; /* otherwise screen has 2000px height */
 }
+.navbar-brand {
+    padding: 0px;
+}
+.navbar-brand>img {
+    height: 100%;
+    padding: 15px;
+    width: auto;
+}
 .form-signin {
     max-width: 330px;
     padding: 15px;
