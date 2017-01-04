@@ -15,7 +15,9 @@ var profileService = 'http://profile:5000',
 var accessLogStream = fs.createWriteStream(__dirname + '/access.log', {flags: 'a'});
 app.use(morgan('combined', {stream: accessLogStream}));
 
-app.use('/', express.static(path.join(__dirname, 'public')));
+console.log(path.join(__dirname, '../webapp'));
+
+app.use('/', express.static(path.join(__dirname, '../webapp')));
 
 app.all("/image*", function(req, res) {
     console.log('redirecting to PhotoService');

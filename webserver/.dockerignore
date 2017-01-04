@@ -1,4 +1,5 @@
 .git
 .gitignore
 .idea
-node_modules
+proxy/node_modules
+webapp/bower_components

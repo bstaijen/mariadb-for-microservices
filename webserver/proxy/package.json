@@ -7,7 +7,7 @@
     "start": "node index.js"
   },
   "author": "",
-  "license": "ISC",
+  "license": "",
   "dependencies": {
     "express": "^4.14.0",
     "http-proxy": "^1.16.2",

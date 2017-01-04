@@ -1,5 +1,10 @@
 var app = angular.module("MariaDBApp", ['ngRoute', 'ngFileUpload'])
-    .config(function ($routeProvider) {
+    .config(function ($routeProvider,$locationProvider) {
+
+
+        $locationProvider.hashPrefix(''); // TEMP
+
+
         $routeProvider
             .when('/', {
                 templateUrl: "view/HomeView.html",

@@ -1,0 +1,11 @@
+{
+  "name": "webserver",
+  "version": "0.0.1",
+  "description": "Photo Sharing Application Webserver",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "bower": "^1.3.9"
+  }
+}
