@@ -55,6 +55,19 @@ services:
         - "affinity:com.mariadb.host!=profilesvc"
         labels:
         - "com.mariadb.host=profilesvc"
+    maxscale:
+        image: bstaijen/mariadb-maxscale-for-galera-cluster
+        restart: always
+        environment:
+        - "CONSUL_HOST=consul:8500"
+        - "GALERA_SERVICE_NAME=mariadb-galera"
+        - "SERVICE_NAME=mariadb-maxscale"
+        - "affinity:com.mariadb.host!=galeracluster"
+        labels:
+        - "com.mariadb.host=galeracluster"
+        ports:
+        - 3307:3307
+        - 3308:3308
     db:
         image: bstaijen/mariadb-microservice-database:latest
         restart: always

@@ -15,15 +15,15 @@ type Config struct {
 }
 
 // LoadConfig returns the config from the config.json file
-func LoadConfig() Config {
+func LoadConfig() *Config {
 
-	var config Config
+	config := &Config{}
 
 	if _, ok := os.LookupEnv("PORT"); ok {
 		portString := os.Getenv("PORT")
-		port, err := strconv.Atoi(portString)
-		if err != nil {
-			config.Port = port
+		port, err := strconv.ParseInt(portString, 10, 0)
+		if err == nil {
+			config.Port = int(port)
 		}
 	}
 
@@ -42,7 +42,7 @@ func LoadConfig() Config {
 	if _, ok := os.LookupEnv("DB_PORT"); ok {
 		portString := os.Getenv("DB_PORT")
 		port, err := strconv.Atoi(portString)
-		if err != nil {
+		if err == nil {
 			config.DBPort = port
 		}
 	}
