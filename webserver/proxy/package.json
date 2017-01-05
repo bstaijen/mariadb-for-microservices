@@ -12,6 +12,7 @@
     "express": "^4.14.0",
     "http-proxy": "^1.16.2",
     "morgan": "^1.7.0",
+    "node-env-file": "^0.1.8",
     "path": "^0.12.7"
   }
 }

@@ -2,3 +2,4 @@
 proxy/node_modules/
 webapp/bower_components
 access.log
+proxy/.env

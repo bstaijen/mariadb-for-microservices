@@ -14,6 +14,12 @@ services:
         restart: always
         environment:
         - "affinity:com.mariadb.host!=webserver"
+        - "PORT=4999"
+        - "PROFILE_URL=http://profile:5000"
+        - "AUTHENTICATION_URL=http://authentication:5001"
+        - "PHOTO_URL=http://photo:5002"
+        - "VOTE_URL=http://vote:5003"
+        - "COMMENT_URL=http://comment:5004"
         labels:
         - "com.mariadb.host=webserver"
     authentication:
