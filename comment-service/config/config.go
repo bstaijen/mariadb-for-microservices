@@ -16,7 +16,7 @@ type Config struct {
 	Database              string
 }
 
-// LoadConfig returns the config from the config.json file
+// LoadConfig returns the config from the environment variables
 func LoadConfig() Config {
 
 	var config Config
@@ -29,8 +29,8 @@ func LoadConfig() Config {
 		}
 	}
 
-	if _, ok := os.LookupEnv("PROFIE_SERVICE_URL"); ok {
-		config.ProfileServiceBaseurl = os.Getenv("PROFIE_SERVICE_URL")
+	if _, ok := os.LookupEnv("PROFILE_SERVICE_URL"); ok {
+		config.ProfileServiceBaseurl = os.Getenv("PROFILE_SERVICE_URL")
 	}
 
 	if _, ok := os.LookupEnv("DB_USERNAME"); ok {

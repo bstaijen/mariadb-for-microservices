@@ -3,6 +3,12 @@ version: '2'
 services:
     webserver:
         image: "webserver"
+        depends_on:
+            - authentication
+            - photo
+            - vote
+            - comment
+            - profile
         ports:
             - "4999:4999"
         restart: always
@@ -12,51 +18,101 @@ services:
         - "com.mariadb.host=webserver"
     authentication:
         image: "authenticationsvc"
+        depends_on: 
+            - registrator
         ports:
             - "5001:5001"
         restart: always 
         environment:
+        - "PORT=5001"
+        - "DB_USERNAME=profile_service"
+        - "DB_PASSWORD=password"
+        - "DB_HOST=maxscale"
+        - "DB_PORT=3308"
+        - "DB=ProfileService"
+        - "SECRETKEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=authenticationsvc"
         labels:
         - "com.mariadb.host=authenticationsvc"
     photo:
         image: "photosvc"
+        depends_on: 
+            - registrator
         ports:
             - "5002:5002"
         restart: always 
         environment:
+        - "PORT=5002"
+        - "COMMENT_SERVICE_URL=http://comment:5004/"
+        - "VOTE_SERVICE_URL=http://vote:5003/"
+        - "PROFILE_SERVICE_URL=http://profile:5000/"
+        - "DB_USERNAME=photo_service"
+        - "DB_PASSWORD=password"
+        - "DB_HOST=maxscale"
+        - "DB_PORT=3308"
+        - "DB=PhotoService"
+        - "SECRETKEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=photosvc"
         labels:
         - "com.mariadb.host=photosvc"
     vote:
         image: "votesvc"
+        depends_on: 
+            - registrator
         ports:
             - "5003:5003"
         restart: always
         environment:
+        - "PORT=5003"
+        - "DB_USERNAME=vote_service"
+        - "DB_PASSWORD=password"
+        - "DB_HOST=maxscale"
+        - "DB_PORT=3308"
+        - "DB=VoteService"
         - "affinity:com.mariadb.host!=votesvc"
         labels:
         - "com.mariadb.host=votesvc"
     comment:
         image: "commentsvc"
+        depends_on: 
+            - registrator
         ports:
             - "5004:5004"
         restart: always
         environment:
+        - "PORT=5004"
+        - "PROFILE_SERVICE_URL=http://profile:5000/"
+        - "DB_USERNAME=comment_service"
+        - "DB_PASSWORD=password"
+        - "DB_HOST=maxscale"
+        - "DB_PORT=3308"
+        - "DB=CommentService"
         - "affinity:com.mariadb.host!=commentsvc"
         labels:
         - "com.mariadb.host=commentsvc"
     profile:
         image: "profilesvc"
+        depends_on: 
+            - registrator
         ports:
             - "5000:5000"
         restart: always
         environment:
+        - "PORT=5000"
+        - "DB_USERNAME=profile_service"
+        - "DB_PASSWORD=password"
+        - "DB_HOST=maxscale"
+        - "DB_PORT=3308"
+        - "DB=ProfileService"
+        - "SECRETKEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=profilesvc"
         labels:
         - "com.mariadb.host=profilesvc"
     maxscale:
         image: bstaijen/mariadb-maxscale-for-galera-cluster
+        depends_on: 
+            - registrator
+            - db
         restart: always
         environment:
         - "CONSUL_HOST=consul:8500"
@@ -70,6 +126,8 @@ services:
         - 3308:3308
     db:
         image: bstaijen/mariadb-microservice-database:latest
+        depends_on: 
+            - registrator
         restart: always
         environment:
         - "MYSQL_ROOT_PASSWORD=password"
@@ -86,6 +144,8 @@ services:
         - 4444:4444
     registrator:
         image: gliderlabs/registrator:master
+        depends_on: 
+            - consul
         hostname: registrator
         volumes:
         - "/var/run/docker.sock:/tmp/docker.sock"

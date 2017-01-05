@@ -16,7 +16,7 @@ type Config struct {
 	SecretKey  string
 }
 
-// LoadConfig returns the config from the config.json file
+// LoadConfig returns the config from the environment variables
 func LoadConfig() Config {
 
 	var config Config
