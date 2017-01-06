@@ -18,7 +18,8 @@
         </button>
     </div>
     <div class="panel-body text-center">
-        <span class="text-muted">{{photo.totalVotes || 0}} votes - {{photo.comments.length || 0}} comments</span>
+        <span class="text-muted">{{photo.totalVotes || 0}} votes - {{calcPerc(photo)}}</span><br>
+        <span class="text-muted">{{photo.upvote_count}} <i class="fa fa-thumbs-o-up"></i> - {{photo.downvote_count}} <i class="fa fa-thumbs-o-down"></i> - {{photo.comment_count || 0}} <i class="fa fa-comment-o"></i></span>
     </div>
     <div class="panel-body animated fadeIn" ng-show="showMessages">
         <div class="col-md-3"></div>
@@ -38,7 +39,7 @@
                 </tr>
                 </tbody>
             </table>
-            <div class="text-center"><a>TODO:Load more comments</a></div>
+            <div ng-hide="lastCommentsLoaded" class="text-center"><div class="btn btn-info" ng-click="loadComments()">Load more comments</div></div>
         </div>
     </div>
 

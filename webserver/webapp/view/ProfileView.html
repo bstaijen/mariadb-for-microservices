@@ -1,0 +1,31 @@
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <div class="panel-title">Profile
+            <a ng-click="toggleEdit()" ng-hide="rdonly == false" class="btn btn-default btn-sm pull-right text-info"><i
+                    class="fa fa-pencil"></i></a>
+            <a ng-click="saveChanges()" ng-hide="rdonly == true" class="btn btn-default btn-sm pull-right text-success"><i
+                    class="fa fa-check"></i></a>
+        </div>
+        <div style="clear: right"></div>
+    </div>
+    <div class="panel-body">
+        <div class="input-group mb5">
+            <span class="input-group-addon"><i class="fa fa-user fa-fw"></i></span>
+            <input class="form-control" ng-model="user.username" type="text" placeholder="Username"
+                   ng-readonly="rdonly">
+        </div>
+        <div class="input-group mb5">
+            <span class="input-group-addon"><i class="fa fa-envelope-o fa-fw"></i></span>
+            <input class="form-control" ng-model="user.email" type="text" placeholder="Email address"
+                   ng-readonly="rdonly">
+        </div>
+        <div class="input-group">
+            <span class="input-group-addon"><i class="fa fa-clock-o fa-fw"></i></span>
+            <input class="form-control" ng-model="createdAt" type="text" placeholder="Member since" ng-readonly="true">
+        </div>
+    </div>
+    <div ng-show="errorMessage.length > 0 || successMessage.length > 0" class="panel-footer">
+        <p ng-show="errorMessage.length > 0" class="text-danger mt10">{{errorMessage}}</p>
+        <p ng-show="successMessage.length > 0" class="text-success mt10">{{successMessage}}</p>
+    </div>
+</div>

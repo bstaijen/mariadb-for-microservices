@@ -21,10 +21,15 @@ var app = angular.module("MariaDBApp", ['ngRoute', 'ngFileUpload'])
                 controller: "RegisterController",
                 activetab: 'register'
             })
-            .when('/dashboard', {
-                templateUrl: "view/DashboardView.html",
-                controller: "DashboardController",
-                activetab: 'dashboard'
+            .when('/profile', {
+                templateUrl: "view/ProfileView.html",
+                controller: "ProfileController",
+                activetab: 'profile'
+            })
+            .when('/upload', {
+                templateUrl: "view/UploadView.html",
+                controller: "UploadController",
+                activetab: 'upload'
             })
             .when("/logout", {
                 templateUrl: "view/LogoutView.html",

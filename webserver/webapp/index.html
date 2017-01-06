@@ -41,11 +41,14 @@
                 <li ng-class="{active: $route.current.activetab == 'home'}"><a href="#/">Incoming</a></li>
                 <li ng-class="{active: $route.current.activetab == 'hot'}"><a href="#/hot">Hot</a></li>
                 <li ng-class="{active: $route.current.activetab == 'toprated'}"><a href="#/toprated">Top Rated</a></li>
-                <li ng-class="{active: $route.current.activetab == 'dashboard'}"><a href="#/dashboard">Dashboard</a>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li ng-hide="isLoggedIn()" ng-class="{active: $route.current.activetab == 'login'}"><a href="#/login">Login</a></li>
+                <li ng-hide="isLoggedIn()" ng-class="{active: $route.current.activetab == 'register'}"><a href="#/register">Register</a></li>
+                <li ng-show="isLoggedIn()" ng-class="{active: $route.current.activetab == 'upload'}"><a href="#/upload">Upload</a></li>
+                <li ng-show="isLoggedIn()" ng-class="{active: $route.current.activetab == 'profile'}"><a href="#/profile">Profile</a></li>
+                <li ng-show="isLoggedIn()" ng-class="{active: $route.current.activetab == 'logout'}"><a href="#/logout">Logout</a>
                 </li>
-                <li ng-class="{active: $route.current.activetab == 'login'}"><a href="#/login">Login</a></li>
-                <li ng-class="{active: $route.current.activetab == 'register'}"><a href="#/register">Register</a></li>
-                <li ng-class="{active: $route.current.activetab == 'logout'}"><a href="#/logout">Logout</a></li>
             </ul>
         </div>
     </div>
@@ -75,7 +78,8 @@
 <script src="services/ApiService.js"></script>
 <script src="factories/LocalStorageFactory.js"></script>
 <script src="controllers/NavController.js"></script>
-<script src="controllers/DashboardController.js"></script>
+<script src="controllers/ProfileController.js"></script>
+<script src="controllers/UploadController.js"></script>
 <script src="controllers/HomeController.js"></script>
 <script src="controllers/LoginController.js"></script>
 <script src="controllers/LogoutController.js"></script>

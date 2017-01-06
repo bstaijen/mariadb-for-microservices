@@ -48,10 +48,9 @@ body {
 .drop-box {
     background: #F8F8F8;
     border: 5px dashed #DDD;
-    width: 170px;
     text-align: center;
     padding: 50px 10px;
-    margin-left: 10px;
+    font-size: 22px;
 }
 .comment-box {
     background: none repeat scroll 0 0 #f5f5f5;

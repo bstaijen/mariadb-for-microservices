@@ -158,7 +158,7 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
             return put(url, user);
         },
         upvote: function (user_id, photo_id) {
-            var url = composeVoteUrl('/votes');
+            var url = composeVoteUrl('/votes?token=' + LocalStorage.getToken());
             var options = {
                 user_id: user_id,
                 photo_id: photo_id,
@@ -168,7 +168,7 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
             return post(url, options);
         },
         downvote: function (user_id, photo_id) {
-            var url = composeVoteUrl('/votes');
+            var url = composeVoteUrl('/votes?token=' + LocalStorage.getToken());
             var options = {
                 user_id: user_id,
                 photo_id: photo_id,
@@ -186,6 +186,10 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
             }
             console.info(options);
             return post(url, options);
+        },
+        getComments : function(photo_id, offset, nr_of_rows) {
+            var url = composeCommentUrl('/comments?photoID=' + photo_id + "&offset=" + offset + "&rows=" + nr_of_rows);
+            return get(url);
         },
         urlbuilder : {
             authenication: composeAuthenticationUrl,

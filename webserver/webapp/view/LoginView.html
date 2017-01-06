@@ -1,8 +1,8 @@
 <form class="form-signin" ng-submit="login()">
     <h2 class="form-signin-heading">Please sign in</h2>
-    <input type="text" ng-model="username" class="form-control" placeholder="Username" required="" autofocus="">
+    <input type="text" ng-model="username" class="form-control mb5" placeholder="Username" required="" autofocus="">
     <input type="password" ng-model="password" class="form-control" placeholder="Password" required="">
-    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    <button class="btn btn-lg btn-primary btn-block mb5" type="submit">Sign in</button>
     <a href="#/register">Not an account? Please register here!</a>
 
     <div ng-repeat="error in errorMessages" ng-hide="errorMessages.length < 1">
