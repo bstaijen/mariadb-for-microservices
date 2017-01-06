@@ -1,12 +1,14 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/bstaijen/mariadb-for-microservices/vote-service/app/http/routes"
 	"github.com/bstaijen/mariadb-for-microservices/vote-service/config"
+	negronilogrus "github.com/meatballhat/negroni-logrus"
 
 	"github.com/urfave/negroni"
 
@@ -23,9 +25,10 @@ func main() {
 	// Set routes
 	routes := routes.InitRoutes()
 	n := negroni.Classic()
+	n.Use(negronilogrus.NewMiddleware())
 	n.UseHandler(routes)
 
 	// Start and listen on port in cbf.Port
-	log.Println("Starting server on port " + strconv.Itoa(cnf.Port))
+	log.Info("Starting server on port " + strconv.Itoa(cnf.Port))
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(cnf.Port), n))
 }

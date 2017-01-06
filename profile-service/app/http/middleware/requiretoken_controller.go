@@ -3,9 +3,8 @@ package middleware
 import (
 	"net/http"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/config"
-
-	"fmt"
 
 	"errors"
 
@@ -32,7 +31,7 @@ func RequireTokenAuthenticationController(w http.ResponseWriter, r *http.Request
 	})
 
 	if err != nil {
-		fmt.Printf("Error: %v \n", err.Error())
+		log.Errorf("Error: %v \n", err.Error())
 	}
 
 	if tok != nil && tok.Valid {

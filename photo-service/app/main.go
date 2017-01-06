@@ -1,11 +1,13 @@
 package main
 
 import (
-	"log"
 	"net/http"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/app/http/routes"
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
+	negronilogrus "github.com/meatballhat/negroni-logrus"
 
 	"strconv"
 
@@ -25,9 +27,10 @@ func main() {
 	// Set the REST API routes
 	router := routes.InitRoutes()
 	n := negroni.Classic()
+	n.Use(negronilogrus.NewMiddleware())
 	n.UseHandler(router)
 
 	// Start and listen on port in cbf.Port
-	log.Println("Starting server on port " + strconv.Itoa(cnf.Port))
+	log.Info("Starting server on port " + strconv.Itoa(cnf.Port))
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(cnf.Port), n))
 }

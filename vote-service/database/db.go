@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	log "github.com/Sirupsen/logrus"
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 	"github.com/bstaijen/mariadb-for-microservices/vote-service/config"
@@ -187,7 +188,7 @@ func OpenConnection() *sql.DB {
 
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", username, password, host, port, database)
 
-	fmt.Printf("Connect to : %v\n", dsn) // log vs printf
+	log.Debugf("Connect to : %v\n", dsn) // log vs printf
 	db, err := sql.Open("mysql", dsn)
 	util.PanicIfError(err)
 

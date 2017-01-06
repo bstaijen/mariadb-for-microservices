@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/app/models"
@@ -107,10 +106,6 @@ func GetCommentCountHandler(w http.ResponseWriter, r *http.Request, next http.Ha
 
 	dab := db.InitMariaDB()
 	responses, err := dab.GetCommentCount(objects)
-
-	for i := 0; i < len(responses); i++ {
-		log.Printf("Number of coments : %v.\n", responses[i])
-	}
 
 	if err != nil {
 		util.SendError(w, err)

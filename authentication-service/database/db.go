@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/bstaijen/mariadb-for-microservices/authentication-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/authentication-service/config"
@@ -40,7 +41,7 @@ func OpenConnection() (*sql.DB, error) {
 
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", username, password, host, port, database)
 
-	log.Printf("Connect to : %v\n", dsn)
+	log.Debug("Connect to : %v\n", dsn)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, ErrCanNotConnectWithDatabase
