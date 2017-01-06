@@ -36,7 +36,7 @@ services:
         - "DB_HOST=maxscale"
         - "DB_PORT=3308"
         - "DB=ProfileService"
-        - "SECRETKEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=authenticationsvc"
         labels:
         - "com.mariadb.host=authenticationsvc"
@@ -57,7 +57,7 @@ services:
         - "DB_HOST=maxscale"
         - "DB_PORT=3308"
         - "DB=PhotoService"
-        - "SECRETKEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=photosvc"
         labels:
         - "com.mariadb.host=photosvc"
@@ -75,6 +75,7 @@ services:
         - "DB_HOST=maxscale"
         - "DB_PORT=3308"
         - "DB=VoteService"
+        - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=votesvc"
         labels:
         - "com.mariadb.host=votesvc"
@@ -110,7 +111,7 @@ services:
         - "DB_HOST=maxscale"
         - "DB_PORT=3308"
         - "DB=ProfileService"
-        - "SECRETKEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=profilesvc"
         labels:
         - "com.mariadb.host=profilesvc"
