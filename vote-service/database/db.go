@@ -3,8 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
-
 	"strconv"
 
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
