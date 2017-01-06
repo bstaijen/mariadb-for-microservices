@@ -13,6 +13,7 @@ type Config struct {
 	DBHost     string
 	DBPort     int
 	Database   string
+	SecretKey  string
 }
 
 // LoadConfig returns the config from the environment variables
@@ -50,6 +51,10 @@ func LoadConfig() Config {
 
 	if _, ok := os.LookupEnv("DB"); ok {
 		config.Database = os.Getenv("DB")
+	}
+
+	if _, ok := os.LookupEnv("SECRET_KEY"); ok {
+		config.SecretKey = os.Getenv("SECRET_KEY")
 	}
 	return config
 }

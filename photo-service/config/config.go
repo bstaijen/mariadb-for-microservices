@@ -68,8 +68,8 @@ func LoadConfig() Config {
 		config.Database = os.Getenv("DB")
 	}
 
-	if _, ok := os.LookupEnv("SECRETKEY"); ok {
-		config.SecretKey = os.Getenv("SECRETKEY")
+	if _, ok := os.LookupEnv("SECRET_KEY"); ok {
+		config.SecretKey = os.Getenv("SECRET_KEY")
 	}
 	return config
 }
