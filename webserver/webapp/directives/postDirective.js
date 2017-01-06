@@ -12,8 +12,6 @@ app.directive('post', function(LocalStorage, ApiService){
             $scope.showMessages = false;
             $scope.page = 0;
 
-            console.info($scope.photo);
-
             if ($scope.photo.comments.length == 10) {
                 $scope.lastCommentsLoaded = false;
                 // set page to 1
@@ -63,8 +61,7 @@ app.directive('post', function(LocalStorage, ApiService){
             };
 
             $scope.displayMoment = function (createdAt) {
-                $mom = moment(createdAt, "YYYY-MM-DDTHH:mm:ssZ");
-                return $mom.fromNow();
+                return moment(createdAt, "YYYY-MM-DD HH:mm:ss").fromNow();
             };
 
             $scope.upvote = function (photo) {
