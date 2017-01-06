@@ -96,6 +96,7 @@ func findResources(photos []*models.Photo, userID int, comments bool, usernames 
 
 	// PhotoID holder
 	photoCountIdentifiers := make([]*sharedModels.VoteCountRequest, 0)
+	photoCommentCountIdentifiers := make([]*sharedModels.CommentCountRequest, 0)
 	photoVotedIdentifiers := make([]*sharedModels.HasVotedRequest, 0)
 	photoCommentsIdentifiers := make([]*sharedModels.CommentRequest, 0)
 	photoUsernamesIndentifiers := make([]*sharedModels.GetUsernamesRequest, 0)
@@ -106,6 +107,9 @@ func findResources(photos []*models.Photo, userID int, comments bool, usernames 
 
 		// Collect photoIDs
 		photoCountIdentifiers = append(photoCountIdentifiers, &sharedModels.VoteCountRequest{
+			PhotoID: photoObject.ID,
+		})
+		photoCommentCountIdentifiers = append(photoCommentCountIdentifiers, &sharedModels.CommentCountRequest{
 			PhotoID: photoObject.ID,
 		})
 		photoVotedIdentifiers = append(photoVotedIdentifiers, &sharedModels.HasVotedRequest{
@@ -124,6 +128,7 @@ func findResources(photos []*models.Photo, userID int, comments bool, usernames 
 	// Searches and adds comments to the photos
 	if comments {
 		photos = appendComments(photoCommentsIdentifiers, photos)
+		photos = appendCommentCount(photoCommentCountIdentifiers, photos)
 	}
 
 	// Searches and adds usernames to the photos
@@ -141,7 +146,7 @@ func findResources(photos []*models.Photo, userID int, comments bool, usernames 
 		if userID > 0 {
 			photos = appendUserVoted(photoVotedIdentifiers, photos)
 		} else {
-			fmt.Println("Warning: UserID is to small for voting")
+			fmt.Printf("Warning: UserID is to small for voting. User ID : %v\n", userID)
 		}
 	}
 	return photos
@@ -162,6 +167,21 @@ func appendComments(photoCommentsIdentifiers []*sharedModels.CommentRequest, pho
 			if phot.ID == commentObject.PhotoID {
 				// Append object to array
 				phot.Comments = append(phot.Comments, commentObject)
+			}
+		}
+	}
+	return photos
+}
+
+func appendCommentCount(photoCommentCountIdentifiers []*sharedModels.CommentCountRequest, photos []*models.Photo) []*models.Photo {
+	count := getCommentCount(photoCommentCountIdentifiers)
+	for ind := 0; ind < len(photos); ind++ {
+		// Get reference
+		phot := photos[ind]
+		for i := 0; i < len(count); i++ {
+			countObject := count[i]
+			if phot.ID == countObject.PhotoID {
+				phot.CommentCount = countObject.Count
 			}
 		}
 	}
@@ -194,7 +214,9 @@ func appendVotesCount(photoCountIdentifiers []*sharedModels.VoteCountRequest, ph
 		for resultsIndex := 0; resultsIndex < len(results); resultsIndex++ {
 			resultsObject := results[resultsIndex]
 			if photoObject.ID == resultsObject.PhotoID {
-				photoObject.TotalVotes = resultsObject.Count
+				photoObject.TotalVotes = resultsObject.UpVoteCount + resultsObject.DownVoteCount
+				photoObject.UpvoteCount = resultsObject.UpVoteCount
+				photoObject.DownvoteCount = resultsObject.DownVoteCount
 			}
 		}
 	}
@@ -270,6 +292,34 @@ func getComments(input []*sharedModels.CommentRequest) []*sharedModels.CommentRe
 				json.Unmarshal(value, comment)
 				comments = append(comments, comment)
 			}, "comments")
+		}
+	})
+	return comments
+}
+
+// Get comment count from CommentsService
+func getCommentCount(input []*sharedModels.CommentCountRequest) []*sharedModels.CommentCountResponse {
+	type Req struct {
+		Requests []*sharedModels.CommentCountRequest `json:"requests"`
+	}
+	body, _ := json.Marshal(Req{Requests: input})
+
+	// Make url
+	url := config.LoadConfig().CommentServiceBaseurl + "ipc/getCount"
+
+	// Return object
+	comments := make([]*sharedModels.CommentCountResponse, 0)
+
+	// GET data and append to return object
+	util.Request("GET", url, body, func(res *http.Response) {
+		data, err := ioutil.ReadAll(res.Body)
+		defer res.Body.Close()
+		if err == nil {
+			jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+				comment := &sharedModels.CommentCountResponse{}
+				json.Unmarshal(value, comment)
+				comments = append(comments, comment)
+			}, "result")
 		}
 	})
 	return comments

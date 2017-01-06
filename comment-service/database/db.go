@@ -110,6 +110,70 @@ func (mariaDB MariaDB) GetCommentByID(id int) (*sharedModels.CommentResponse, er
 	return nil, ErrCommentNotFound
 }
 
+func (mariaDB MariaDB) GetComments(photoID, offset, nrOfRows int) ([]*sharedModels.CommentResponse, error) {
+	query := fmt.Sprintf("SELECT id, user_id, photo_id, comment, createdAt FROM comments WHERE photo_id=%v ORDER BY createdAt DESC LIMIT %v, %v", photoID, offset, nrOfRows)
+
+	// Database actions
+	db, err := OpenConnection()
+	if err != nil {
+		return nil, err
+	}
+	defer CloseConnection(db)
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]*sharedModels.CommentResponse, 0)
+	for rows.Next() {
+		obj := &sharedModels.CommentResponse{}
+		var createdAt string
+		rows.Scan(&obj.ID, &obj.UserID, &obj.PhotoID, &obj.Comment, &createdAt)
+		obj.CreatedAt = util.TimeHelper(createdAt)
+		responses = append(responses, obj)
+	}
+	return responses, nil
+}
+
+func (mariaDB MariaDB) GetCommentCount(items []*sharedModels.CommentCountRequest) ([]*sharedModels.CommentCountResponse, error) {
+
+	if len(items) < 1 {
+		return nil, nil
+	}
+	// Query builder
+	query := ""
+	for index := 0; index < len(items); index++ {
+		if index+1 < len(items) {
+			// NOT LAST
+			query += fmt.Sprintf("(SELECT photo_id, COUNT(*) FROM comments WHERE photo_id =%v) UNION ALL ", items[index].PhotoID)
+		} else {
+			//LAST
+			query += fmt.Sprintf("(SELECT photo_id, COUNT(*) FROM comments WHERE photo_id =%v)", items[index].PhotoID)
+		}
+	}
+
+	// Database actions
+	db, err := OpenConnection()
+	if err != nil {
+		return nil, err
+	}
+	defer CloseConnection(db)
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]*sharedModels.CommentCountResponse, 0)
+	for rows.Next() {
+		obj := &sharedModels.CommentCountResponse{}
+		rows.Scan(&obj.PhotoID, &obj.Count)
+		responses = append(responses, obj)
+	}
+	return responses, nil
+}
+
 func (mariaDB MariaDB) GetLastTenComments(items []*sharedModels.CommentRequest) ([]*sharedModels.CommentResponse, error) {
 	if len(items) < 1 {
 		return nil, nil

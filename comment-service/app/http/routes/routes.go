@@ -28,6 +28,10 @@ func setRESTRoutes(router *mux.Router) *mux.Router {
 		negroni.HandlerFunc(middleware.AccessControlHandler),
 		negroni.HandlerFunc(controllers.CreateHandler),
 	))
+	comments.Methods("GET").Handler(negroni.New(
+		negroni.HandlerFunc(middleware.AccessControlHandler),
+		negroni.HandlerFunc(controllers.ListCommentsHandler),
+	))
 	return router
 }
 
@@ -41,5 +45,12 @@ func setIPCRoutes(router *mux.Router) *mux.Router {
 		negroni.HandlerFunc(middleware.AccessControlHandler),
 		negroni.HandlerFunc(controllers.GetLastTenHandler),
 	)).Methods("GET")
+
+	// get the number of comments of a photo /ipc/getCount
+	ipc.Handle("/getCount", negroni.New(
+		negroni.HandlerFunc(middleware.AccessControlHandler),
+		negroni.HandlerFunc(controllers.GetCommentCountHandler),
+	)).Methods("GET")
+
 	return router
 }

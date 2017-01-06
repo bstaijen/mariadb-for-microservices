@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/app/models"
@@ -10,6 +11,8 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/database"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 	"github.com/buger/jsonparser"
+
+	"strconv"
 
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 )
@@ -41,6 +44,83 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc
 		return
 	}
 	util.SendErrorMessage(w, "UserID, PhotoID and Comment are mandatory")
+}
+
+func ListCommentsHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+
+	// get query param offset
+	var offsetString = r.URL.Query().Get("offset")
+
+	// get query param nr_of_rows
+	var rowsString = r.URL.Query().Get("rows")
+
+	// get PhotoID
+	var photoIDString = r.URL.Query().Get("photoID")
+	photoID, err := strconv.Atoi(photoIDString)
+	if err != nil {
+		util.SendErrorMessage(w, "photoID is not a number ["+photoIDString+"]")
+		return
+	}
+
+	dab := db.InitMariaDB()
+
+	comments := make([]*sharedModels.CommentResponse, 0)
+
+	// if not query params
+	if len(offsetString) > 0 && len(rowsString) > 0 {
+		// list the 10 past on start-lengths
+		offset, err := strconv.Atoi(offsetString)
+		if err != nil {
+			util.SendErrorMessage(w, "offset is not a number ["+offsetString+"]")
+			return
+		}
+		rows, err := strconv.Atoi(rowsString)
+		if err != nil {
+			util.SendErrorMessage(w, "rows is not a number ["+rowsString+"]")
+			return
+		}
+		comments, err = dab.GetComments(photoID, offset, rows)
+	} else {
+		// then list last 10
+		comments, err = dab.GetComments(photoID, 1, 10)
+	}
+
+	if err != nil {
+		util.SendError(w, err)
+		return
+	}
+
+	// return
+	util.SendOK(w, comments)
+}
+
+func GetCommentCountHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	data, _ := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+
+	objects := make([]*sharedModels.CommentCountRequest, 0)
+	jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		comment := &sharedModels.CommentCountRequest{}
+		json.Unmarshal(value, comment)
+		objects = append(objects, comment)
+	}, "requests")
+
+	dab := db.InitMariaDB()
+	responses, err := dab.GetCommentCount(objects)
+
+	for i := 0; i < len(responses); i++ {
+		log.Printf("Number of coments : %v.\n", responses[i])
+	}
+
+	if err != nil {
+		util.SendError(w, err)
+		return
+	}
+
+	type Resp struct {
+		Result []*sharedModels.CommentCountResponse `json:"result"`
+	}
+	util.SendOK(w, &Resp{Result: responses})
 }
 
 func GetLastTenHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {

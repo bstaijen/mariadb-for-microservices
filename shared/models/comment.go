@@ -14,3 +14,12 @@ type CommentResponse struct {
 	Comment   string    `json:"comment"`
 	CreatedAt time.Time `json:"createdAt"`
 }
+
+type CommentCountRequest struct {
+	PhotoID int `json:"photo_id"`
+}
+
+type CommentCountResponse struct {
+	PhotoID int `json:"photo_id"`
+	Count   int `json:"count"`
+}

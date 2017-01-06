@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	"strconv"
 
@@ -50,7 +51,7 @@ func (mariaDB MariaDB) VoteCount(items []*sharedModels.VoteCountRequest) []*shar
 
 	// QUERY BUILDER
 	// select photo_id, count(*) as count from votes where photo_id in (21,22) group by photo_id;
-	query := "SELECT photo_id, count(*) AS count FROM votes WHERE photo_id IN"
+	query := "SELECT photo_id, sum(upvote), sum(downvote) FROM votes WHERE photo_id IN"
 	query += "("
 
 	for i := 0; i < len(items); i++ { // xx any oppportunities for sql injection here ?
@@ -76,9 +77,7 @@ func (mariaDB MariaDB) VoteCount(items []*sharedModels.VoteCountRequest) []*shar
 
 	for rows.Next() {
 		obj := &sharedModels.VoteCountResponse{}
-
-		rows.Scan(&obj.PhotoID, &obj.Count)
-
+		rows.Scan(&obj.PhotoID, &obj.UpVoteCount, &obj.DownVoteCount)
 		photoCountResponses = append(photoCountResponses, obj)
 	}
 	return photoCountResponses

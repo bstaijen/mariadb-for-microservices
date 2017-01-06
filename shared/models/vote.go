@@ -22,8 +22,9 @@ type VoteCountRequest struct {
 	PhotoID int `json:"photo_id"`
 }
 type VoteCountResponse struct {
-	PhotoID int `json:"photo_id"`
-	Count   int `json:"count"`
+	PhotoID       int `json:"photo_id"`
+	UpVoteCount   int `json:"total_up_count"`
+	DownVoteCount int `json:"total_down_count"`
 }
 
 type TopRatedPhotoResponse struct {
