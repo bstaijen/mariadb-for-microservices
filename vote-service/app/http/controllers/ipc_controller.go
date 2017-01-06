@@ -15,7 +15,12 @@ import (
 
 func GetTopRatedHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	database := db.InitMariaDB()
-	topRated := database.GetTopRatedTimeline()
+	topRated, err := database.GetTopRatedTimeline()
+	if err != nil {
+		util.SendError(w, err)
+		return
+	}
+
 	type Resp struct {
 		Results []*sharedModels.TopRatedPhotoResponse `json:"results"`
 	}
@@ -24,7 +29,12 @@ func GetTopRatedHandler(w http.ResponseWriter, r *http.Request, next http.Handle
 
 func GetHotHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	database := db.InitMariaDB()
-	hot := database.GetHotTimeline()
+	hot, err := database.GetHotTimeline()
+	if err != nil {
+		util.SendError(w, err)
+		return
+	}
+
 	type Resp struct {
 		Results []*sharedModels.TopRatedPhotoResponse `json:"results"`
 	}
@@ -43,7 +53,12 @@ func HasVotedHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFu
 	}, "requests")
 
 	database := db.InitMariaDB()
-	counts := database.HasVoted(objects)
+	counts, err := database.HasVoted(objects)
+	if err != nil {
+		util.SendError(w, err)
+		return
+	}
+
 	type Resp struct {
 		Results []*sharedModels.HasVotedResponse `json:"results"`
 	}
@@ -62,7 +77,12 @@ func GetVoteCountHandler(w http.ResponseWriter, r *http.Request, next http.Handl
 	}, "requests")
 
 	database := db.InitMariaDB()
-	counts := database.VoteCount(objects)
+	counts, err := database.VoteCount(objects)
+	if err != nil {
+		util.SendError(w, err)
+		return
+	}
+
 	type Resp struct {
 		Results []*sharedModels.VoteCountResponse `json:"results"`
 	}

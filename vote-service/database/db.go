@@ -2,12 +2,12 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
-	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 	"github.com/bstaijen/mariadb-for-microservices/vote-service/config"
 )
 
@@ -23,18 +23,57 @@ func InitMariaDB() *MariaDB {
 	return mariaDBInstance
 }
 
+// OpenConnection method
+func OpenConnection() (*sql.DB, error) {
+
+	cnf := config.LoadConfig() // what if this breaks ?
+
+	username := cnf.DBUsername
+	password := cnf.DBPassword
+	host := cnf.DBHost
+	port := cnf.DBPort
+	database := cnf.Database
+
+	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", username, password, host, port, database)
+
+	log.Debug("Connect to : %v\n", dsn)
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, ErrCanNotConnectWithDatabase
+	}
+
+	// Open doesn't open a connection. Validate DSN data:
+	err = db.Ping()
+	if err != nil {
+		return nil, ErrCanNotConnectWithDatabase
+	}
+	return db, nil
+}
+
+// CloseConnection method
+func CloseConnection(db *sql.DB) {
+	db.Close()
+}
+
 func (mariaDB MariaDB) Create(vote *sharedModels.VoteCreateRequest) error {
-	db := OpenConnection()
+	db, err := OpenConnection()
+	if err != nil {
+		return err
+	}
 	defer CloseConnection(db)
 
 	stmt, err := db.Prepare("DELETE FROM votes WHERE user_id=? AND photo_id=?")
-	util.PanicIfError(err)
-
+	if err != nil {
+		return err
+	}
 	_, err = stmt.Exec(vote.UserID, vote.PhotoID)
-	util.PanicIfError(err)
-
+	if err != nil {
+		return err
+	}
 	stmt, err = db.Prepare("INSERT INTO votes(user_id, photo_id, upvote, downvote) VALUES(?,?,?,?)")
-	util.PanicIfError(err)
+	if err != nil {
+		return err
+	}
 
 	_, err = stmt.Exec(vote.UserID, vote.PhotoID, vote.Upvote, vote.Downvote)
 	if err != nil {
@@ -43,13 +82,12 @@ func (mariaDB MariaDB) Create(vote *sharedModels.VoteCreateRequest) error {
 	return nil
 }
 
-func (mariaDB MariaDB) VoteCount(items []*sharedModels.VoteCountRequest) []*sharedModels.VoteCountResponse {
+func (mariaDB MariaDB) VoteCount(items []*sharedModels.VoteCountRequest) ([]*sharedModels.VoteCountResponse, error) {
 	if len(items) < 1 {
-		return nil
+		return make([]*sharedModels.VoteCountResponse, 0), nil
 	}
 
 	// QUERY BUILDER
-	// select photo_id, count(*) as count from votes where photo_id in (21,22) group by photo_id;
 	query := "SELECT photo_id, sum(upvote), sum(downvote) FROM votes WHERE photo_id IN"
 	query += "("
 
@@ -66,29 +104,36 @@ func (mariaDB MariaDB) VoteCount(items []*sharedModels.VoteCountRequest) []*shar
 	query += ") GROUP BY photo_id"
 
 	// DO DATABASE THINGS
-	db := OpenConnection() // xx  how often do we open / close databsases per request ?
+	db, err := OpenConnection() // xx  how often do we open / close databsases per request ?
+	if err != nil {
+		return nil, err
+	}
 	defer CloseConnection(db)
 
 	rows, err := db.Query(query)
-	util.PanicIfError(err)
+	if err != nil {
+		return nil, err
+	}
 
 	photoCountResponses := make([]*sharedModels.VoteCountResponse, 0)
 
 	for rows.Next() {
 		obj := &sharedModels.VoteCountResponse{}
-		rows.Scan(&obj.PhotoID, &obj.UpVoteCount, &obj.DownVoteCount)
+		err = rows.Scan(&obj.PhotoID, &obj.UpVoteCount, &obj.DownVoteCount)
+		if err != nil {
+			return nil, err
+		}
 		photoCountResponses = append(photoCountResponses, obj)
 	}
-	return photoCountResponses
+	return photoCountResponses, nil
 }
 
-func (mariaDB MariaDB) HasVoted(items []*sharedModels.HasVotedRequest) []*sharedModels.HasVotedResponse {
+func (mariaDB MariaDB) HasVoted(items []*sharedModels.HasVotedRequest) ([]*sharedModels.HasVotedResponse, error) {
 	if len(items) < 1 {
-		return nil
+		return make([]*sharedModels.HasVotedResponse, 0), nil
 	}
 
 	// QUERY BUILDER
-	// select user_id, photo_id from votes where photo_id in (1,19,20,21,22) AND user_id = 2;
 	query := "SELECT user_id, photo_id, upvote, downvote FROM votes WHERE "
 	query += ""
 
@@ -102,14 +147,17 @@ func (mariaDB MariaDB) HasVoted(items []*sharedModels.HasVotedRequest) []*shared
 		}
 	}
 
-	query += ""
-
 	// DO DATABASE THINGS
-	db := OpenConnection()
+	db, err := OpenConnection()
+	if err != nil {
+		return nil, err
+	}
 	defer CloseConnection(db)
 
 	rows, err := db.Query(query)
-	util.PanicIfError(err)
+	if err != nil {
+		return nil, err
+	}
 
 	photoVotedResponses := make([]*sharedModels.HasVotedResponse, 0)
 
@@ -117,21 +165,29 @@ func (mariaDB MariaDB) HasVoted(items []*sharedModels.HasVotedRequest) []*shared
 		obj := &sharedModels.HasVotedResponse{}
 		// obj.Voted = true
 
-		rows.Scan(&obj.UserID, &obj.PhotoID, &obj.Upvote, &obj.Downvote)
+		err = rows.Scan(&obj.UserID, &obj.PhotoID, &obj.Upvote, &obj.Downvote)
+		if err != nil {
+			return nil, err
+		}
 
 		photoVotedResponses = append(photoVotedResponses, obj)
 	}
-	return photoVotedResponses
+	return photoVotedResponses, nil
 }
 
-func (mariaDB MariaDB) GetTopRatedTimeline() []*sharedModels.TopRatedPhotoResponse {
+func (mariaDB MariaDB) GetTopRatedTimeline() ([]*sharedModels.TopRatedPhotoResponse, error) {
 	query := "select photo_id, sum(upvote) as total_upvote, sum(downvote) as total_downvote, sum(upvote) - sum(downvote) as difference from votes group by photo_id order by difference desc limit 10"
 
-	db := OpenConnection()
+	db, err := OpenConnection()
+	if err != nil {
+		return nil, err
+	}
 	defer CloseConnection(db)
 
 	rows, err := db.Query(query)
-	util.PanicIfError(err)
+	if err != nil {
+		return nil, err
+	}
 
 	photos := make([]*sharedModels.TopRatedPhotoResponse, 0)
 
@@ -141,22 +197,29 @@ func (mariaDB MariaDB) GetTopRatedTimeline() []*sharedModels.TopRatedPhotoRespon
 		var total_downvote int
 		var difference int
 
-		rows.Scan(&photo_id, &total_upvote, &total_downvote, &difference)
-
+		err = rows.Scan(&photo_id, &total_upvote, &total_downvote, &difference)
+		if err != nil {
+			return nil, err
+		}
 		photos = append(photos, &sharedModels.TopRatedPhotoResponse{
 			PhotoID: photo_id,
 		})
 	}
-	return photos
+	return photos, nil
 }
 
-func (mariaDB MariaDB) GetHotTimeline() []*sharedModels.TopRatedPhotoResponse {
+func (mariaDB MariaDB) GetHotTimeline() ([]*sharedModels.TopRatedPhotoResponse, error) {
 	query := "select photo_id, sum(upvote) as total_upvote, sum(downvote) as total_downvote, sum(upvote) - sum(downvote) as difference from votes where createdAt > DATE_SUB(now(), INTERVAL 1 DAY) group by photo_id order by difference desc limit 10"
-	db := OpenConnection()
+	db, err := OpenConnection()
+	if err != nil {
+		return nil, err
+	}
 	defer CloseConnection(db)
 
 	rows, err := db.Query(query)
-	util.PanicIfError(err)
+	if err != nil {
+		return nil, err
+	}
 
 	photos := make([]*sharedModels.TopRatedPhotoResponse, 0)
 
@@ -166,40 +229,20 @@ func (mariaDB MariaDB) GetHotTimeline() []*sharedModels.TopRatedPhotoResponse {
 		var total_downvote int
 		var difference int
 
-		rows.Scan(&photo_id, &total_upvote, &total_downvote, &difference)
+		err = rows.Scan(&photo_id, &total_upvote, &total_downvote, &difference)
+		if err != nil {
+			return nil, err
+		}
 
 		photos = append(photos, &sharedModels.TopRatedPhotoResponse{
 			PhotoID: photo_id,
 		})
 	}
-	return photos
+	return photos, nil
 }
 
-// OpenConnection method
-func OpenConnection() *sql.DB {
+// ErrUserNotFound error if user does not exist in database
+var ErrUserNotFound = errors.New("User does not exist")
 
-	cnf := config.LoadConfig() // what if this breaks ?
-
-	username := cnf.DBUsername
-	password := cnf.DBPassword
-	host := cnf.DBHost
-	port := cnf.DBPort
-	database := cnf.Database
-
-	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", username, password, host, port, database)
-
-	log.Debugf("Connect to : %v\n", dsn) // log vs printf
-	db, err := sql.Open("mysql", dsn)
-	util.PanicIfError(err)
-
-	// Open doesn't open a connection. Validate DSN data:
-	err = db.Ping()
-	util.PanicIfError(err)
-
-	return db
-}
-
-// CloseConnection method
-func CloseConnection(db *sql.DB) {
-	db.Close()
-}
+// ErrCanNotConnectWithDatabase error if database is unreachable
+var ErrCanNotConnectWithDatabase = errors.New("Can not connect with database")
