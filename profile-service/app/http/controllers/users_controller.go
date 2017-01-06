@@ -17,8 +17,12 @@ import (
 func UsersController(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
 	database := db.InitMariaDB()
-	users := database.GetUsers()
-	util.SendOK(w, users)
+	users, err := database.GetUsers()
+	if err != nil {
+		util.SendError(w, err)
+	} else {
+		util.SendOK(w, users)
+	}
 }
 
 func UserIndexController(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
@@ -42,7 +46,11 @@ func GetUsernames(w http.ResponseWriter, r *http.Request, next http.HandlerFunc)
 	result := bodyToArrayWithIDs(r)
 
 	database := db.InitMariaDB()
-	users := database.GetUsernames(result)
+	users, err := database.GetUsernames(result)
+	if err != nil {
+		util.SendError(w, err)
+		return
+	}
 
 	type Resp struct {
 		Usernames []*sharedModels.GetUsernamesResponse `json:"usernames"`

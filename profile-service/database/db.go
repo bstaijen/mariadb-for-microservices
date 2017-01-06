@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"strconv"
+
+	log "github.com/Sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/config"
@@ -30,7 +31,7 @@ func InitMariaDB() *MariaDB {
 }
 
 // OpenConnection method
-func OpenConnection() *sql.DB {
+func OpenConnection() (*sql.DB, error) {
 
 	cnf := config.LoadConfig()
 
@@ -42,15 +43,18 @@ func OpenConnection() *sql.DB {
 
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", username, password, host, port, database)
 
-	fmt.Printf("Connect to : %v\n", dsn)
+	log.Debugf("Connect to : %v\n", dsn)
 	db, err := sql.Open("mysql", dsn)
-	util.PanicIfError(err)
+	if err != nil {
+		return nil, ErrCanNotConnectWithDatabase
+	}
 
 	// Open doesn't open a connection. Validate DSN data:
 	err = db.Ping()
-	util.PanicIfError(err)
-
-	return db
+	if err != nil {
+		return nil, ErrCanNotConnectWithDatabase
+	}
+	return db, nil
 }
 
 // CloseConnection method
@@ -59,13 +63,18 @@ func CloseConnection(db *sql.DB) {
 }
 
 func (mariaDB MariaDB) GetUserByID(ID int) (models.User, error) {
-	db := OpenConnection()
+	db, err := OpenConnection()
+	if err != nil {
+		return models.User{}, err
+	}
 	defer CloseConnection(db)
 
 	query := "SELECT id, username, createdAt, password, email FROM users WHERE id = " + strconv.Itoa(ID)
 
 	rows, err := db.Query(query)
-	util.PanicIfError(err)
+	if err != nil {
+		return models.User{}, err
+	}
 
 	if rows.Next() {
 		var id int
@@ -74,7 +83,9 @@ func (mariaDB MariaDB) GetUserByID(ID int) (models.User, error) {
 		var password string
 		var email string
 		err = rows.Scan(&id, &username, &createdAt, &password, &email)
-		util.PanicIfError(err)
+		if err != nil {
+			return models.User{}, err
+		}
 
 		return models.User{ID: id, Username: username, CreatedAt: util.TimeHelper(createdAt), Password: password, Email: email}, nil
 	}
@@ -82,13 +93,18 @@ func (mariaDB MariaDB) GetUserByID(ID int) (models.User, error) {
 }
 
 func (mariaDB MariaDB) GetUserByUsername(username string) (models.User, error) {
-	db := OpenConnection()
+	db, err := OpenConnection()
+	if err != nil {
+		return models.User{}, err
+	}
 	defer CloseConnection(db)
 
 	query := "SELECT id, username, createdAt, password, email FROM users WHERE username = '" + username + "'"
 
 	rows, err := db.Query(query)
-	util.PanicIfError(err)
+	if err != nil {
+		return models.User{}, err
+	}
 
 	if rows.Next() {
 		var id int
@@ -97,7 +113,9 @@ func (mariaDB MariaDB) GetUserByUsername(username string) (models.User, error) {
 		var password string
 		var email string
 		err = rows.Scan(&id, &username, &createdAt, &password, &email)
-		util.PanicIfError(err)
+		if err != nil {
+			return models.User{}, err
+		}
 
 		return models.User{ID: id, Username: username, CreatedAt: util.TimeHelper(createdAt), Password: password, Email: email}, nil
 	}
@@ -105,13 +123,18 @@ func (mariaDB MariaDB) GetUserByUsername(username string) (models.User, error) {
 }
 
 func (mariaDB MariaDB) CreateUser(user *models.User) (int, error) {
-	db := OpenConnection()
+	db, err := OpenConnection()
+	if err != nil {
+		return 0, err
+	}
 	defer CloseConnection(db)
 
 	// check unique username
 	query := "SELECT * FROM users WHERE username = '" + user.Username + "'"
 	rows, err := db.Query(query)
-	util.PanicIfError(err)
+	if err != nil {
+		return 0, err
+	}
 	if rows.Next() {
 		return 0, ErrUsernameIsNotUnique
 	}
@@ -119,66 +142,93 @@ func (mariaDB MariaDB) CreateUser(user *models.User) (int, error) {
 	// check unique email
 	query = "SELECT * FROM users WHERE email = '" + user.Email + "'"
 	rows, err = db.Query(query)
-	util.PanicIfError(err)
+	if err != nil {
+		return 0, err
+	}
 	if rows.Next() {
 		return 0, ErrEmailIsNotUnique
 	}
 
 	//Insert
 	stmt, err := db.Prepare("INSERT INTO users(username, email, password) VALUES(?,?, ?)")
-	util.PanicIfError(err)
+	if err != nil {
+		return 0, err
+	}
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 
 	res, err := stmt.Exec(user.Username, user.Email, string(hash))
-	util.PanicIfError(err)
+	if err != nil {
+		return 0, err
+	}
 
 	id, err := res.LastInsertId()
-	util.PanicIfError(err)
+	if err != nil {
+		return 0, err
+	}
 
 	return int(id), nil
 }
 
-func (mariaDB MariaDB) UpdateUser(user *models.User) int {
-	db := OpenConnection()
+func (mariaDB MariaDB) UpdateUser(user *models.User) (int, error) {
+	db, err := OpenConnection()
+	if err != nil {
+		return 0, err
+	}
 	defer CloseConnection(db)
 
 	stmt, err := db.Prepare("UPDATE users SET username = ?, email = ? WHERE id = ?")
-	util.PanicIfError(err)
+	if err != nil {
+		return 0, err
+	}
 
 	_, err = stmt.Exec(user.Username, user.Email, user.ID)
-	util.PanicIfError(err)
-
-	return user.ID
+	if err != nil {
+		return 0, err
+	}
+	return user.ID, nil
 }
 
-func (mariaDB MariaDB) DeleteUser(user *models.User) int {
-	db := OpenConnection()
+func (mariaDB MariaDB) DeleteUser(user *models.User) (int, error) {
+	db, err := OpenConnection()
+	if err != nil {
+		return 0, err
+	}
 	defer CloseConnection(db)
 
 	if user.ID > 0 {
 
 		stmt, err := db.Prepare("DELETE from users WHERE id = ?")
-		util.PanicIfError(err)
+		if err != nil {
+			return 0, err
+		}
 
 		res, err := stmt.Exec(user.ID)
-		util.PanicIfError(err)
+		if err != nil {
+			return 0, err
+		}
 
 		rowsAffected, err := res.RowsAffected()
-		util.PanicIfError(err)
-
-		return int(rowsAffected)
+		if err != nil {
+			return 0, err
+		}
+		return int(rowsAffected), nil
 	}
-	return -1
+	return 0, errors.New("User ID is empty")
 
 }
 
-func (mariaDB MariaDB) GetUsers() []models.User {
-	db := OpenConnection()
+func (mariaDB MariaDB) GetUsers() ([]models.User, error) {
+	db, err := OpenConnection()
+	if err != nil {
+		return nil, err
+	}
 	defer CloseConnection(db)
 
 	rows, err := db.Query("SELECT id, username, email, createdAt FROM users")
-	util.PanicIfError(err)
+	if err != nil {
+		return nil, err
+	}
 	persons := make([]models.User, 0)
 
 	for rows.Next() {
@@ -187,37 +237,45 @@ func (mariaDB MariaDB) GetUsers() []models.User {
 		var email string
 		var createdAt string
 		err = rows.Scan(&id, &username, &email, &createdAt)
-		util.PanicIfError(err)
-
+		if err != nil {
+			return nil, err
+		}
 		persons = append(persons, models.User{ID: id, Username: username, CreatedAt: util.TimeHelper(createdAt)})
 	}
-	return persons
+	return persons, nil
 }
 
-func (mariaDB MariaDB) GetUsernames(identifiers []*sharedModels.GetUsernamesRequest) []*sharedModels.GetUsernamesResponse {
+func (mariaDB MariaDB) GetUsernames(identifiers []*sharedModels.GetUsernamesRequest) ([]*sharedModels.GetUsernamesResponse, error) {
 
 	if len(identifiers) < 1 {
-		return make([]*sharedModels.GetUsernamesResponse, 0)
+		return make([]*sharedModels.GetUsernamesResponse, 0), nil
 	}
 
 	query := inQueryBuilder(identifiers)
 
-	db := OpenConnection()
+	db, err := OpenConnection()
+	if err != nil {
+		return nil, err
+	}
 	defer CloseConnection(db)
 
 	rows, err := db.Query(query)
-	util.PanicIfError(err)
+	if err != nil {
+		return nil, err
+	}
 	persons := make([]*sharedModels.GetUsernamesResponse, 0)
 
 	for rows.Next() {
 		var id int
 		var username string
 		err = rows.Scan(&id, &username)
-		util.PanicIfError(err)
+		if err != nil {
+			return nil, err
+		}
 
 		persons = append(persons, &sharedModels.GetUsernamesResponse{ID: id, Username: username})
 	}
-	return persons
+	return persons, nil
 }
 
 // Query builder for contructing an IN-condition
@@ -245,4 +303,9 @@ func inQueryBuilder(identifiers []*sharedModels.GetUsernamesRequest) string {
 
 var ErrEmailIsNotUnique = errors.New("Email must be unique")
 var ErrUsernameIsNotUnique = errors.New("Username must be unique")
+
+// ErrUserNotFound error if user does not exist in database
 var ErrUserNotFound = errors.New("User does not exist")
+
+// ErrCanNotConnectWithDatabase error if database is unreachable
+var ErrCanNotConnectWithDatabase = errors.New("Can not connect with database")
