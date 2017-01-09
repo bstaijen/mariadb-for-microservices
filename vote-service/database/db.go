@@ -175,8 +175,8 @@ func (mariaDB MariaDB) HasVoted(items []*sharedModels.HasVotedRequest) ([]*share
 	return photoVotedResponses, nil
 }
 
-func (mariaDB MariaDB) GetTopRatedTimeline() ([]*sharedModels.TopRatedPhotoResponse, error) {
-	query := "select photo_id, sum(upvote) as total_upvote, sum(downvote) as total_downvote, sum(upvote) - sum(downvote) as difference from votes group by photo_id order by difference desc limit 10"
+func (mariaDB MariaDB) GetTopRatedTimeline(offset int, nrOfRows int) ([]*sharedModels.TopRatedPhotoResponse, error) {
+	query := fmt.Sprintf("select photo_id, sum(upvote) as total_upvote, sum(downvote) as total_downvote, sum(upvote) - sum(downvote) as difference from votes group by photo_id order by difference desc LIMIT %v, %v", offset, nrOfRows)
 
 	db, err := OpenConnection()
 	if err != nil {
@@ -208,8 +208,8 @@ func (mariaDB MariaDB) GetTopRatedTimeline() ([]*sharedModels.TopRatedPhotoRespo
 	return photos, nil
 }
 
-func (mariaDB MariaDB) GetHotTimeline() ([]*sharedModels.TopRatedPhotoResponse, error) {
-	query := "select photo_id, sum(upvote) as total_upvote, sum(downvote) as total_downvote, sum(upvote) - sum(downvote) as difference from votes where createdAt > DATE_SUB(now(), INTERVAL 1 DAY) group by photo_id order by difference desc limit 10"
+func (mariaDB MariaDB) GetHotTimeline(offset int, nrOfRows int) ([]*sharedModels.TopRatedPhotoResponse, error) {
+	query := fmt.Sprintf("select photo_id, sum(upvote) as total_upvote, sum(downvote) as total_downvote, sum(upvote) - sum(downvote) as difference from votes where createdAt > DATE_SUB(now(), INTERVAL 1 DAY) group by photo_id order by difference desc LIMIT %v, %v", offset, nrOfRows)
 	db, err := OpenConnection()
 	if err != nil {
 		return nil, err

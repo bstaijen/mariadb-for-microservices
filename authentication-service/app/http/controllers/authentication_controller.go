@@ -18,17 +18,29 @@ import (
 // LoginHandler validates the user and returns a JWT token
 func LoginHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
-	var username = r.URL.Query().Get("username")
-	var password = r.URL.Query().Get("password")
+	type Login struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	login := &Login{}
+
+	err := util.RequestToJSON(r, login)
+	if err != nil {
+		util.SendBadRequest(w, errors.New("Bad json"))
+		return
+	}
+
+	//var username = r.URL.Query().Get("username")
+	//var password = r.URL.Query().Get("password")
 
 	// Check if there's atleast some value
-	if len(username) < 1 || len(password) < 1 {
-		util.SendOKMessage(w, "Please provide username and password in the URL")
+	if len(login.Username) < 1 || len(login.Password) < 1 {
+		util.SendErrorMessage(w, "Please provide username and password in the body")
 		return
 	}
 
 	// authenticate the username password combination
-	usr, err := authenticate(username, password)
+	usr, err := authenticate(login.Username, login.Password)
 	if err != nil {
 		util.SendBadRequest(w, err)
 		return
@@ -52,7 +64,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc)
 
 	// Retrieve the user from the database
 	database := db.InitMariaDB()
-	databaseUser, _ := database.GetUserByUsername(username)
+	databaseUser, _ := database.GetUserByUsername(login.Username)
 
 	// Send the token and user back
 	data := &models.Token{
@@ -64,7 +76,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc)
 }
 
 func RefreshTokenHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	w.Write([]byte("Not implemented!"))
+	util.SendErrorMessage(w, "Not implemented!")
 }
 
 // authenticate user by checking username and password in database

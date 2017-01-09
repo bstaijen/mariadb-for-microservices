@@ -8,14 +8,19 @@ import (
 
 	"io/ioutil"
 
+	"github.com/bstaijen/mariadb-for-microservices/shared/helper"
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 	"github.com/buger/jsonparser"
 )
 
 func GetTopRatedHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+
+	// get offset and rows
+	offset, rows := helper.PaginationFromRequest(r)
+
 	database := db.InitMariaDB()
-	topRated, err := database.GetTopRatedTimeline()
+	topRated, err := database.GetTopRatedTimeline(offset, rows)
 	if err != nil {
 		util.SendError(w, err)
 		return
@@ -28,8 +33,12 @@ func GetTopRatedHandler(w http.ResponseWriter, r *http.Request, next http.Handle
 }
 
 func GetHotHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+
+	// get offset and rows
+	offset, rows := helper.PaginationFromRequest(r)
+
 	database := db.InitMariaDB()
-	hot, err := database.GetHotTimeline()
+	hot, err := database.GetHotTimeline(offset, rows)
 	if err != nil {
 		util.SendError(w, err)
 		return

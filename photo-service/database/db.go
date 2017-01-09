@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
@@ -35,7 +36,7 @@ func OpenConnection() (*sql.DB, error) {
 
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", username, password, host, port, database)
 
-	log.Printf("Connect to : %v\n", dsn)
+	log.Debugf("Connect to : %v\n", dsn)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, ErrCanNotConnectWithDatabase
@@ -78,8 +79,8 @@ func (mariaDB MariaDB) ListImagesByUserID(id int) ([]*models.Photo, error) {
 	return selectQuery(fmt.Sprintf("SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos WHERE user_id=%v", id))
 }
 
-func (mariaDB MariaDB) ListIncoming() ([]*models.Photo, error) {
-	return selectQuery("SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos ORDER BY createdAt DESC")
+func (mariaDB MariaDB) ListIncoming(offset int, nrOfRows int) ([]*models.Photo, error) {
+	return selectQuery(fmt.Sprintf("SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos ORDER BY createdAt DESC LIMIT %v, %v", offset, nrOfRows))
 }
 
 func (mariaDB MariaDB) GetPhotoByFilename(filename string) (*models.Photo, error) {
@@ -99,6 +100,7 @@ func (mariaDB MariaDB) GetPhotoById(id int) (*models.Photo, error) {
 }
 
 func selectQuery(query string) ([]*models.Photo, error) {
+
 	db, err := OpenConnection()
 	if err != nil {
 		return nil, err
@@ -106,7 +108,10 @@ func selectQuery(query string) ([]*models.Photo, error) {
 	defer CloseConnection(db)
 
 	rows, err := db.Query(query)
-	util.PanicIfError(err)
+	if err != nil {
+		return nil, err
+	}
+
 	photos := []*models.Photo{}
 	for rows.Next() {
 		photoObject := &models.Photo{}
@@ -114,7 +119,9 @@ func selectQuery(query string) ([]*models.Photo, error) {
 		var createdAt string
 
 		err = rows.Scan(&photoObject.ID, &photoObject.UserID, &photoObject.Filename, &photoObject.Title, &createdAt, &photoObject.ContentType, &photoObject.Image)
-		util.PanicIfError(err)
+		if err != nil {
+			return nil, err
+		}
 
 		photoObject.CreatedAt = util.TimeHelper(createdAt)
 

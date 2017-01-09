@@ -19,6 +19,9 @@ import (
 )
 
 func main() {
+
+	log.SetLevel(log.DebugLevel)
+
 	// Get config
 	cnf := config.LoadConfig()
 

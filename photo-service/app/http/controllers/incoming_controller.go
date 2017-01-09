@@ -12,7 +12,9 @@ import (
 
 	"io/ioutil"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
+	"github.com/bstaijen/mariadb-for-microservices/shared/helper"
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 	"github.com/buger/jsonparser"
@@ -21,10 +23,14 @@ import (
 
 // IncomingHandler is the handler for serving the default photos timeline
 func IncomingHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	// Get user ID. It is allowed to be 0.
 	userID, _ := getUserIDFromRequest(r)
-	// TODO : pass secret key in GetUserIDFromRequest method
+
+	// get offset and rows
+	offset, rows := helper.PaginationFromRequest(r)
+
 	database := db.InitMariaDB()
-	photos, err := database.ListIncoming()
+	photos, err := database.ListIncoming(offset, rows)
 	if err != nil {
 		util.SendError(w, err)
 		return
@@ -35,10 +41,15 @@ func IncomingHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFu
 
 // TopRatedHandler is the handler for serving the Top Rated photos timeline
 func TopRatedHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	// Get user ID. It is allowed to be 0.
 	userID, _ := getUserIDFromRequest(r)
 
+	// get offset and rows and pass into URL toprated
+	offset, rows := helper.PaginationFromRequest(r)
+
 	// Make url
-	url := config.LoadConfig().VoteServiceBaseurl + "ipc/toprated"
+	urlpart := fmt.Sprintf("ipc/toprated?offset=%v&rows=%v", offset, rows)
+	url := config.LoadConfig().VoteServiceBaseurl + urlpart
 
 	// Save object
 	photos := make([]*models.Photo, 0)
@@ -65,14 +76,29 @@ func TopRatedHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFu
 func HotHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	userID, _ := getUserIDFromRequest(r)
 
+	// get offset and rows and pass into URL toprated
+	offset, rows := helper.PaginationFromRequest(r)
+
 	// Make url
-	url := config.LoadConfig().VoteServiceBaseurl + "ipc/hot"
+	urlpart := fmt.Sprintf("ipc/hot?offset=%v&rows=%v", offset, rows)
+	url := config.LoadConfig().VoteServiceBaseurl + urlpart
 
 	// Save object
 	photos := make([]*models.Photo, 0)
 
 	// GET
 	util.Request("GET", url, []byte(string("")), func(res *http.Response) {
+		// Error handling
+		if res.StatusCode < 200 || res.StatusCode > 299 {
+			logrus.Errorf("ERROR with code %v.", res.Status)
+			data, _ := ioutil.ReadAll(res.Body)
+			logrus.Error(string(data))
+
+			util.SendErrorMessage(w, "Could not retrieve photos.")
+			return
+		}
+
+		// Happy path
 		data, err := ioutil.ReadAll(res.Body)
 		if err == nil {
 			dab := db.InitMariaDB()
@@ -256,6 +282,15 @@ func getUsername(input []*sharedModels.GetUsernamesRequest) []*sharedModels.GetU
 
 	// GET data and append to return object
 	util.Request("GET", url, body, func(res *http.Response) {
+		// Error handling
+		if res.StatusCode < 200 || res.StatusCode > 299 {
+			logrus.Errorf("ERROR with code %v.", res.Status)
+			data, _ := ioutil.ReadAll(res.Body)
+			logrus.Error(string(data))
+			return
+		}
+
+		// Happy path
 		data, err := ioutil.ReadAll(res.Body)
 		defer res.Body.Close()
 		if err == nil {
@@ -284,6 +319,15 @@ func getComments(input []*sharedModels.CommentRequest) []*sharedModels.CommentRe
 
 	// GET data and append to return object
 	util.Request("GET", url, body, func(res *http.Response) {
+		// Error handling
+		if res.StatusCode < 200 || res.StatusCode > 299 {
+			logrus.Errorf("ERROR with code %v.", res.Status)
+			data, _ := ioutil.ReadAll(res.Body)
+			logrus.Error(string(data))
+			return
+		}
+
+		// Happy path
 		data, err := ioutil.ReadAll(res.Body)
 		defer res.Body.Close()
 		if err == nil {
@@ -312,6 +356,15 @@ func getCommentCount(input []*sharedModels.CommentCountRequest) []*sharedModels.
 
 	// GET data and append to return object
 	util.Request("GET", url, body, func(res *http.Response) {
+		// Error handling
+		if res.StatusCode < 200 || res.StatusCode > 299 {
+			logrus.Errorf("ERROR with code %v.", res.Status)
+			data, _ := ioutil.ReadAll(res.Body)
+			logrus.Error(string(data))
+			return
+		}
+
+		// Happy path
 		data, err := ioutil.ReadAll(res.Body)
 		defer res.Body.Close()
 		if err == nil {
@@ -339,6 +392,15 @@ func getVotes(input []*sharedModels.VoteCountRequest) []*sharedModels.VoteCountR
 	votes := make([]*sharedModels.VoteCountResponse, 0)
 
 	util.Request("GET", url, body, func(res *http.Response) {
+		// Error handling
+		if res.StatusCode < 200 || res.StatusCode > 299 {
+			logrus.Errorf("ERROR with code %v.", res.Status)
+			data, _ := ioutil.ReadAll(res.Body)
+			logrus.Error(string(data))
+			return
+		}
+
+		// Happy path
 		data, err := ioutil.ReadAll(res.Body)
 		defer res.Body.Close()
 		if err == nil {
@@ -366,6 +428,15 @@ func voted(input []*sharedModels.HasVotedRequest) []*sharedModels.HasVotedRespon
 	hasVoted := make([]*sharedModels.HasVotedResponse, 0)
 
 	util.Request("GET", url, body, func(res *http.Response) {
+		// Error handling
+		if res.StatusCode < 200 || res.StatusCode > 299 {
+			logrus.Errorf("ERROR with code %v.", res.Status)
+			data, _ := ioutil.ReadAll(res.Body)
+			logrus.Error(string(data))
+			return
+		}
+
+		// Happy path
 		data, err := ioutil.ReadAll(res.Body)
 		defer res.Body.Close()
 		if err == nil {

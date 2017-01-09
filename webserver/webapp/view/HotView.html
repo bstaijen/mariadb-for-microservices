@@ -1,1 +1,4 @@
 <post ng-repeat="photo in photos" photo="photo"></post>
+<div ng-show="hasMorePictures && photos.length > 0" class="btn btn-success btn-block animated fadeIn"
+     ng-click="loadNext()">Load more
+</div>

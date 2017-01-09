@@ -18,17 +18,12 @@ app.controller("LoginController", function ($scope, $window, ApiService, LocalSt
                     }
 
 
-                    $window.location.href = '#/dashboard';
+                    $window.location.href = '#/';
                 } else {
                     $scope.errorMessages.push("Expected to receive access token");
                 }
             },
             function (response) {
-
-                console.info(response);
-
-                console.info(response.headers());
-
                 if (response.data == null && response.status == -1) {
                     $scope.errorMessages.push("Error connecting to API. Maybe resource is offline?");
                 }
@@ -36,8 +31,8 @@ app.controller("LoginController", function ($scope, $window, ApiService, LocalSt
                 if (response.data) {
                     var data = response.data;
 
-                    if (data && data.Message) {
-                        $scope.errorMessages.push(data.Message);
+                    if (data && data.message) {
+                        $scope.errorMessages.push(data.message);
                         return;
                     }
                 }

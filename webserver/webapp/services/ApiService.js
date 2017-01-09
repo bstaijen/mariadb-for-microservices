@@ -117,9 +117,12 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
 
     return {
         login: function (username, password) {
-            var part = '/token-auth?username=' + username + '&password=' + password;
+            var part = '/token-auth';
             var url = composeAuthenticationUrl(part);
-            return post(url, {});
+            return post(url, {
+                username: username,
+                password: password
+            });
         },
         register: function (username, email, password) {
             var url = composeProfileUrl('/users');
@@ -132,25 +135,25 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
                 data: {file: file}
             });
         },
-        incoming: function () {
+        incoming: function (offset, rows) {
             if (LocalStorage.hasToken()) {
-                return get(composePhotoUrl('/image/list?token=' + LocalStorage.getToken()));
+                return get(composePhotoUrl('/image/list?offset=' + offset + '&rows=' + rows + '&token=' + LocalStorage.getToken()));
             } else {
-                return get(composePhotoUrl('/image/list'));
+                return get(composePhotoUrl('/image/list?offset=' + offset + '&rows=' + rows));
             }
         },
-        toprated: function () {
+        toprated: function (offset, rows) {
             if (LocalStorage.hasToken()) {
-                return get(composePhotoUrl('/image/toprated?token=' + LocalStorage.getToken()));
+                return get(composePhotoUrl('/image/toprated?offset=' + offset + '&rows=' + rows + '&token=' + LocalStorage.getToken()));
             } else {
-                return get(composePhotoUrl('/image/toprated'));
+                return get(composePhotoUrl('/image/toprated?offset=' + offset + '&rows=' + rows));
             }
         },
-        hot: function () {
+        hot: function (offset, rows) {
             if (LocalStorage.hasToken()) {
-                return get(composePhotoUrl('/image/hot?token=' + LocalStorage.getToken()));
+                return get(composePhotoUrl('/image/hot?offset=' + offset + '&rows=' + rows + '&token=' + LocalStorage.getToken()));
             } else {
-                return get(composePhotoUrl('/image/hot'));
+                return get(composePhotoUrl('/image/hot?offset=' + offset + '&rows=' + rows));
             }
         },
         updateUser: function (user) {
@@ -178,7 +181,7 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
             return post(url, options);
         },
         comment: function (user_id, photo_id, comment) {
-            var url =  composeCommentUrl('/comments');
+            var url = composeCommentUrl('/comments');
             var options = {
                 user_id: user_id,
                 photo_id: photo_id,
@@ -187,11 +190,11 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
             console.info(options);
             return post(url, options);
         },
-        getComments : function(photo_id, offset, nr_of_rows) {
+        getComments: function (photo_id, offset, nr_of_rows) {
             var url = composeCommentUrl('/comments?photoID=' + photo_id + "&offset=" + offset + "&rows=" + nr_of_rows);
             return get(url);
         },
-        urlbuilder : {
+        urlbuilder: {
             authenication: composeAuthenticationUrl,
             vote: composeVoteUrl,
             comment: composeCommentUrl,
