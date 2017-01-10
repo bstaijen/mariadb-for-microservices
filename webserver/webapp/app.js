@@ -1,4 +1,4 @@
-var app = angular.module("MariaDBApp", ['ngRoute', 'ngFileUpload'])
+var app = angular.module("MariaDBApp", ['ngRoute', 'ngFileUpload', 'ui.bootstrap'])
     .config(function ($routeProvider,$locationProvider) {
 
 

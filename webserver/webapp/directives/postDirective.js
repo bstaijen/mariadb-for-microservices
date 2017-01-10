@@ -1,11 +1,11 @@
-app.directive('post', function(LocalStorage, ApiService){
+app.directive('post', function (LocalStorage, ApiService, $uibModal) {
     return {
-        restrict : 'E',
+        restrict: 'E',
         scope: {
             photo: '='
         },
-        templateUrl : 'directives/postView.html',
-        controller: function($scope) {
+        templateUrl: 'directives/postView.html',
+        controller: function ($scope) {
 
 
             $scope.lastCommentsLoaded = true;
@@ -20,7 +20,7 @@ app.directive('post', function(LocalStorage, ApiService){
 
             }
 
-            $scope.loadComments = function() {
+            $scope.loadComments = function () {
 
                 // make click listener.
                 // increase page ++1
@@ -32,7 +32,7 @@ app.directive('post', function(LocalStorage, ApiService){
 
                 // get comments request.
                 ApiService.getComments($scope.photo.id, offset, 10).then(
-                    function(response){
+                    function (response) {
                         console.info(response);
 
                         //  : if loaded comments are size of 10 then lastCommentsLoaded stays false, else true
@@ -43,16 +43,21 @@ app.directive('post', function(LocalStorage, ApiService){
                         }
 
                         $scope.photo.comments = $.merge($scope.photo.comments, response);
-                    }, function(error) {
+                    }, function (error) {
                         console.error(error);
                     }
                 );
 
 
-
             };
 
-            $scope.toggleMessages = function() {
+            $scope.toggleMessages = function () {
+                var usr = LocalStorage.getUser();
+                if (!usr) {
+                    showSignInRequiredModal();
+                    return;
+                }
+
                 $scope.showMessages = !$scope.showMessages;
             };
 
@@ -72,9 +77,7 @@ app.directive('post', function(LocalStorage, ApiService){
                 }
                 var usr = LocalStorage.getUser();
                 if (!usr) {
-                    // TODO : maybe redirect to login?
-                    // Or show a message with : 'you need to signup buddy'
-                    console.info('you need to singin buddy');
+                    showSignInRequiredModal();
                     return;
                 }
 
@@ -100,7 +103,8 @@ app.directive('post', function(LocalStorage, ApiService){
                 });
 
             };
-            $scope.downvote = function(photo) {
+
+            $scope.downvote = function (photo) {
                 console.log('downvote button clicked');
                 if (photo.downvote) {
                     console.log('You already downvoted');
@@ -108,9 +112,7 @@ app.directive('post', function(LocalStorage, ApiService){
                 }
                 var usr = LocalStorage.getUser();
                 if (!usr) {
-                    console.info('you need to singin buddy');
-                    // TODO : maybe redirect to login?
-                    // Or show a message with : 'you need to signup buddy'
+                    showSignInRequiredModal();
                     return;
                 }
 
@@ -136,12 +138,10 @@ app.directive('post', function(LocalStorage, ApiService){
                 });
             };
 
-            $scope.comment = function(photo) {
+            $scope.comment = function (photo) {
                 var usr = LocalStorage.getUser();
                 if (!usr) {
-                    // TODO : maybe redirect to login?
-                    // Or show a message with : 'you need to signup buddy'
-                    console.info('you need to singin buddy');
+                    showSignInRequiredModal();
                     return;
                 }
 
@@ -149,7 +149,7 @@ app.directive('post', function(LocalStorage, ApiService){
                     function (response) {
                         console.info(response);
                         $scope.comment_text = '';
-                        $scope.photo.comment_count ++;
+                        $scope.photo.comment_count++;
                         if ($scope.photo && $scope.photo.comments) {
                             $scope.photo.comments.push(response);
                         }
@@ -159,7 +159,7 @@ app.directive('post', function(LocalStorage, ApiService){
                     }
                 );
             }
-            $scope.calcPerc = function(photo) {
+            $scope.calcPerc = function (photo) {
 
                 var down = photo.downvote_count < 1 ? 0 : photo.downvote_count * 100;
                 var up = photo.upvote_count < 1 ? 0 : photo.upvote_count * 100;
@@ -171,9 +171,35 @@ app.directive('post', function(LocalStorage, ApiService){
                 } else if (up < 1) {
                     return '0 %'
                 } else {
-                    return Math.floor((up / (up+down) * 100)) + " %"
+                    return Math.floor((up / (up + down) * 100)) + " %"
                 }
 
+            };
+
+            function showSignInRequiredModal() {
+                var modalInstance = $uibModal.open({
+                    animation: true,
+                    ariaLabelledBy: 'modal-title',
+                    ariaDescribedBy: 'modal-body',
+                    templateUrl: 'view/modal.html',
+                    controller: function ($uibModalInstance) {
+                        var $ctrl = this;
+                        $ctrl.cancel = function () {
+                            $uibModalInstance.dismiss('cancel');
+                        };
+                    },
+                    controllerAs: '$ctrl',
+                    size: 'sm'
+                });
+
+                // To disable error message in console:
+                modalInstance.closed.then(function () {
+                }, function () {
+                });
+                // To disable error message in console:
+                modalInstance.result.then(function () {
+                }, function () {
+                });
             }
         }
     }
