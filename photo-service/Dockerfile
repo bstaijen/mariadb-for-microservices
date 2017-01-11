@@ -6,7 +6,9 @@ RUN go get github.com/go-sql-driver/mysql
 RUN go get github.com/gorilla/mux
 RUN go get github.com/dgrijalva/jwt-go
 RUN go get github.com/urfave/negroni
-RUN go get github.com/bstaijen/mariadb-for-microservices/shared/
+RUN go get github.com/bstaijen/mariadb-for-microservices/shared/util
+RUN go get github.com/bstaijen/mariadb-for-microservices/shared/models
+RUN go get github.com/bstaijen/mariadb-for-microservices/shared/helper
 RUN go get github.com/buger/jsonparser
 RUN go get github.com/joho/godotenv
 RUN go get github.com/sirupsen/logrus

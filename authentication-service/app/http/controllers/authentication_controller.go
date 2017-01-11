@@ -30,9 +30,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc)
 		return
 	}
 
-	//var username = r.URL.Query().Get("username")
-	//var password = r.URL.Query().Get("password")
-
 	// Check if there's atleast some value
 	if len(login.Username) < 1 || len(login.Password) < 1 {
 		util.SendErrorMessage(w, "Please provide username and password in the body")
