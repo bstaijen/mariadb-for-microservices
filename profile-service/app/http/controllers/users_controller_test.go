@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/0x03facts/facts/profile-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/app/http/controllers"
+	"github.com/bstaijen/mariadb-for-microservices/profile-service/app/models"
 
 	"strconv"
 
