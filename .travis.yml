@@ -19,3 +19,6 @@ install:
   - go get github.com/sirupsen/logrus
   - go get github.com/meatballhat/negroni-logrus
   - go get gopkg.in/DATA-DOG/go-sqlmock.v1
+
+script:
+  - go test -v ./...
