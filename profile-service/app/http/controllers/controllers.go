@@ -201,7 +201,7 @@ func bodyToArrayWithIDs(req *http.Request) ([]*sharedModels.GetUsernamesRequest,
 	data, _ := ioutil.ReadAll(req.Body)
 	defer req.Body.Close()
 	objects := make([]*sharedModels.GetUsernamesRequest, 0)
-	err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+	_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		log.Info(string(value))
 		if err != nil {
 			debug.PrintStack()
