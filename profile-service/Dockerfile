@@ -18,7 +18,7 @@ RUN go get gopkg.in/DATA-DOG/go-sqlmock.v1
 # 
 ADD . /go/src/mariadb.com/profile-service/
 WORKDIR /go/src/mariadb.com/profile-service
-RUN go build app/main.go
+RUN go build main.go
 
 # Expose port 5000 to the host so we can access our application
 EXPOSE 5000
