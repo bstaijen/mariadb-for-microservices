@@ -1,4 +1,4 @@
-package controllers_test
+package controllers
 
 import (
 	"bytes"
@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bstaijen/mariadb-for-microservices/profile-service/app/http/controllers"
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/config"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -67,7 +66,7 @@ func TestCreateUser(t *testing.T) {
 	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "password", "email"}).AddRow(user.ID, user.Username, timeNow, "PasswordHashPlaceHolder", user.Email)
 	mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(user.ID).WillReturnRows(selectByIDRows)
 
-	handler := controllers.CreateUserHandler(db)
+	handler := CreateUserHandler(db)
 	handler(res, req, nil)
 
 	// Make sure expectations are met
@@ -111,7 +110,7 @@ func TestBadJson(t *testing.T) {
 	}
 
 	res := httptest.NewRecorder()
-	handler := controllers.CreateUserHandler(db)
+	handler := CreateUserHandler(db)
 	handler(res, req, nil)
 
 	actual := res.Body.String()
@@ -140,7 +139,7 @@ func TestCreateUserWithoutUsername(t *testing.T) {
 	}
 	defer db.Close()
 
-	handler := controllers.CreateUserHandler(db)
+	handler := CreateUserHandler(db)
 	handler(res, req, nil)
 
 	actual := res.Body.String()
@@ -170,7 +169,7 @@ func TestCreateUserWithoutPassword(t *testing.T) {
 	}
 	defer db.Close()
 
-	handler := controllers.CreateUserHandler(db)
+	handler := CreateUserHandler(db)
 	handler(res, req, nil)
 
 	actual := res.Body.String()
@@ -199,7 +198,7 @@ func TestCreateUserWithoutEmail(t *testing.T) {
 	}
 	defer db.Close()
 
-	handler := controllers.CreateUserHandler(db)
+	handler := CreateUserHandler(db)
 	handler(res, req, nil)
 
 	actual := res.Body.String()
@@ -259,7 +258,7 @@ func TestDeleteUser(t *testing.T) {
 
 	mock.ExpectExec("DELETE from users WHERE").WithArgs(user.ID).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	handler := controllers.DeleteUserHandler(db, cnf)
+	handler := DeleteUserHandler(db, cnf)
 	handler(res, req, nil)
 
 	// Make sure expectations are met
@@ -312,7 +311,7 @@ func TestUpdateUser(t *testing.T) {
 
 	mock.ExpectExec("UPDATE users SET").WithArgs(user.Username, user.Email, user.ID).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	handler := controllers.UpdateUserHandler(db, cnf)
+	handler := UpdateUserHandler(db, cnf)
 	handler(res, req, nil)
 
 	// Make sure expectations are met
@@ -321,5 +320,23 @@ func TestUpdateUser(t *testing.T) {
 	}
 	if res.Result().StatusCode != 200 {
 		t.Errorf("Expected statuscode to be 200 but got %v", res.Result().StatusCode)
+	}
+}
+
+func TestBodyToArrayWithIDs(t *testing.T) {
+	mock := []byte(`{ "requests":[{"id":1} ,{"id":2},{"id":3}, {"id":4} ]}`)
+	req, err := http.NewRequest("GET", "http://localhost/", bytes.NewBuffer([]byte(mock)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := bodyToArrayWithIDs(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := 4
+	if len(result) != expected {
+		t.Errorf("Expected number of id's to be 4 but got %v", len(result))
 	}
 }
