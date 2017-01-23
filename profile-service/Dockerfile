@@ -13,6 +13,7 @@ RUN go get github.com/buger/jsonparser
 RUN go get github.com/joho/godotenv
 RUN go get github.com/sirupsen/logrus
 RUN go get github.com/meatballhat/negroni-logrus
+RUN go get gopkg.in/DATA-DOG/go-sqlmock.v1
 
 # 
 ADD . /go/src/mariadb.com/profile-service/
