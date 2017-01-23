@@ -8,6 +8,8 @@ import (
 
 	"strconv"
 
+	"runtime/debug"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/database"
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
@@ -65,8 +67,20 @@ func bodyToArrayWithIDs(req *http.Request) ([]*sharedModels.GetUsernamesRequest,
 	defer req.Body.Close()
 	objects := make([]*sharedModels.GetUsernamesRequest, 0)
 	err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		if err != nil {
+			debug.PrintStack()
+			logrus.Error(err)
+			return
+		}
+
 		usernameReq := &sharedModels.GetUsernamesRequest{}
-		json.Unmarshal(value, usernameReq)
+		err = json.Unmarshal(value, usernameReq)
+		if err != nil {
+			debug.PrintStack()
+			logrus.Error(err)
+			return
+		}
+
 		objects = append(objects, usernameReq)
 	}, "requests")
 	if err != nil {
