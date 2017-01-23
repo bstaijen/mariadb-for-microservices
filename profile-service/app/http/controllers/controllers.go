@@ -27,6 +27,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+// CreateUserHandler creates a new user in the database. Password is saved as a hash.
 func CreateUserHandler(connection *sql.DB) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		user := &models.User{}
@@ -61,6 +62,7 @@ func CreateUserHandler(connection *sql.DB) negroni.HandlerFunc {
 	})
 }
 
+// DeleteUserHandler removes a user from the database. User can only deletes it's own record.
 func DeleteUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		var queryToken = r.URL.Query().Get("token")
@@ -104,6 +106,7 @@ func DeleteUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 	})
 }
 
+// UpdateUserHandler updates an user based on it's user ID. User is only allowed to update it's own record. Verification is being done based on the JWT in the request.
 func UpdateUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		var queryToken = r.URL.Query().Get("token")
@@ -154,6 +157,7 @@ func UpdateUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 	})
 }
 
+// UserByIndexHandler retrieves an user from the database based on its id. This handler expects the id being passed in the route variable in the current request.
 func UserByIndexHandler(connection *sql.DB) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
@@ -175,6 +179,7 @@ func UserByIndexHandler(connection *sql.DB) negroni.HandlerFunc {
 	})
 }
 
+// GetUsernamesHandler is a handler for collecting usernames coresponding to user ID's. The request expects a json object in the following format: { "requests":[{"id":1} ,{"id":2},{"id":3}, {"id":4} ]}.
 func GetUsernamesHandler(connection *sql.DB) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		result, err := bodyToArrayWithIDs(r)
@@ -202,7 +207,6 @@ func bodyToArrayWithIDs(req *http.Request) ([]*sharedModels.GetUsernamesRequest,
 	defer req.Body.Close()
 	objects := make([]*sharedModels.GetUsernamesRequest, 0)
 	_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-		log.Info(string(value))
 		if err != nil {
 			debug.PrintStack()
 			log.Error(err)

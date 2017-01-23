@@ -11,6 +11,7 @@ import (
 	"github.com/urfave/negroni"
 )
 
+// InitRoutes initializes the REST and IPC routes for this service.
 func InitRoutes(db *sql.DB, cnf config.Config) *mux.Router {
 	router := mux.NewRouter()
 	router = setRESTRoutes(db, cnf, router)
@@ -22,6 +23,8 @@ func setRESTRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Route
 
 	// Subrouter /users
 	users := router.PathPrefix("/users").Subrouter()
+
+	// TODO :  https://github.com/gorilla/handlers/blob/master/cors.go#L140
 	users.Methods("OPTIONS").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AcceptOPTIONSHandler),
 	))
