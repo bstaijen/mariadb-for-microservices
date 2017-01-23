@@ -2,10 +2,7 @@ package controllers
 
 import (
 	"database/sql"
-	"encoding/json"
-	"io/ioutil"
 	"net/http"
-	"runtime/debug"
 	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
@@ -18,7 +15,6 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
-	"github.com/buger/jsonparser"
 	"github.com/gorilla/mux"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -198,10 +194,10 @@ func GetUsernamesHandler(connection *sql.DB) negroni.HandlerFunc {
 }
 
 func bodyToArrayWithIDs(req *http.Request) ([]*sharedModels.GetUsernamesRequest, error) {
-	data, _ := ioutil.ReadAll(req.Body)
-	defer req.Body.Close()
+	//data, _ := ioutil.ReadAll(req.Body)
+	//defer req.Body.Close()
 	objects := make([]*sharedModels.GetUsernamesRequest, 0)
-	err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+	/*err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		log.Info(string(value))
 		if err != nil {
 			debug.PrintStack()
@@ -221,6 +217,6 @@ func bodyToArrayWithIDs(req *http.Request) ([]*sharedModels.GetUsernamesRequest,
 	}, "requests")
 	if err != nil {
 		return nil, err
-	}
+	}*/
 	return objects, nil
 }
