@@ -1,8 +1,6 @@
 package controllers_test
 
 import (
-	"bytes"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,8 +14,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
-
-	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 )
 
 func TestGetUserByIndex(t *testing.T) {
@@ -68,7 +64,7 @@ func TestGetUserByIndex(t *testing.T) {
 	}
 }
 
-func TestGetUsernamesHandler(t *testing.T) {
+/*func TestGetUsernamesHandler(t *testing.T) {
 	//
 
 	// Mock user object
@@ -129,3 +125,4 @@ func TestGetUsernamesHandler(t *testing.T) {
 		t.Errorf("Expected statuscode to be 200 but got %v", res.Result().StatusCode)
 	}
 }
+*/
