@@ -16,6 +16,7 @@ type User struct {
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"createdAt"`
 	Password  string    `json:"password,omitempty"`
+	Hash      string
 }
 
 // Method of user. (not a function)
@@ -52,5 +53,4 @@ func (u *User) ValidatePassword() error {
 
 var ErrUsernameTooShort = errors.New("Username is too short")
 var ErrEmailTooShort = errors.New("Email address is to short")
-var ErrEmailIsNotAnEmail = errors.New("Email address is not valid")
 var ErrPasswordTooShort = errors.New("Password is to short")

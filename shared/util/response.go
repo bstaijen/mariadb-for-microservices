@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/json"
 	"net/http"
+	"runtime/debug"
 
 	"log"
 
@@ -31,6 +32,7 @@ func SendErrorMessage(w http.ResponseWriter, message string) {
 }
 
 func SendError(w http.ResponseWriter, err error) {
+	debug.PrintStack()
 	SendBadRequest(w, err)
 }
 

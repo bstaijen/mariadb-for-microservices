@@ -1,67 +1,71 @@
 package routes
 
 import (
+	"database/sql"
+
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/app/http/controllers"
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/app/http/middleware"
+	"github.com/bstaijen/mariadb-for-microservices/profile-service/config"
+
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
 
-func InitRoutes() *mux.Router {
+func InitRoutes(db *sql.DB, cnf config.Config) *mux.Router {
 	router := mux.NewRouter()
-	router = setRESTRoutes(router)
-	router = setIPCRoutes(router)
+	router = setRESTRoutes(db, cnf, router)
+	router = setIPCRoutes(db, cnf, router)
 	return router
 }
 
-func setRESTRoutes(router *mux.Router) *mux.Router {
+func setRESTRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Router {
 
 	// Subrouter /users
 	users := router.PathPrefix("/users").Subrouter()
 	users.Methods("OPTIONS").Handler(negroni.New(
-		negroni.HandlerFunc(middleware.AcceptOPTIONS),
+		negroni.HandlerFunc(middleware.AcceptOPTIONSHandler),
 	))
 
 	// Update user /users
 	users.Methods("PUT").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(middleware.RequireTokenAuthenticationController),
-		negroni.HandlerFunc(controllers.UpdateUserController),
+		middleware.RequireTokenAuthenticationHandler(cnf),
+		controllers.UpdateUserHandler(db, cnf),
 	))
 
 	// Delete User /users
 	users.Methods("DELETE").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(middleware.RequireTokenAuthenticationController),
-		negroni.HandlerFunc(controllers.DeleteUserController),
+		middleware.RequireTokenAuthenticationHandler(cnf),
+		controllers.DeleteUserHandler(db, cnf),
 	))
 
 	// Create user /sers
 	users.Methods("POST").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(controllers.CreateUserController),
+		controllers.CreateUserHandler(db),
 	))
 
 	// Get one user /user/{id}
 	oneUser := router.PathPrefix("/user/{id}").Subrouter()
 	oneUser.Methods("GET").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(middleware.RequireTokenAuthenticationController),
-		negroni.HandlerFunc(controllers.UserIndexController),
+		middleware.RequireTokenAuthenticationHandler(cnf),
+		controllers.UserByIndexHandler(db),
 	))
 
 	return router
 }
 
 // Inter-Process Communication routes
-func setIPCRoutes(router *mux.Router) *mux.Router {
+func setIPCRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Router {
 	// IPC subrouter /ipc
 	ipc := router.PathPrefix("/ipc").Subrouter()
 
 	// get usernames /ipc/usernames
 	ipc.Handle("/usernames", negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(controllers.GetUsernames),
+		controllers.GetUsernamesHandler(db),
 	)).Methods("GET")
 
 	return router

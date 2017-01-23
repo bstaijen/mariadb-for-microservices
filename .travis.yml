@@ -1,0 +1,20 @@
+language: go
+
+go:
+  - 1.7.3
+
+install:
+  - go get github.com/bmizerany/assert
+  - go get github.com/mrb/hob
+  - go get golang.org/x/crypto/bcrypt
+  - go get github.com/go-sql-driver/mysql
+  - go get github.com/gorilla/mux
+  - go get github.com/dgrijalva/jwt-go
+  - go get github.com/urfave/negroni
+  - go get github.com/bstaijen/mariadb-for-microservices/shared/util
+  - go get github.com/bstaijen/mariadb-for-microservices/shared/models
+  - go get github.com/bstaijen/mariadb-for-microservices/shared/helper
+  - go get github.com/buger/jsonparser
+  - go get github.com/joho/godotenv
+  - go get github.com/sirupsen/logrus
+  - go get github.com/meatballhat/negroni-logrus

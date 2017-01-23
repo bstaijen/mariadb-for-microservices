@@ -8,6 +8,7 @@ import (
 
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/app/http/routes"
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/config"
+	"github.com/bstaijen/mariadb-for-microservices/profile-service/database"
 	negronilogrus "github.com/meatballhat/negroni-logrus"
 
 	"github.com/urfave/negroni"
@@ -25,8 +26,12 @@ func main() {
 	// Get config
 	cnf := config.LoadConfig()
 
+	// Get database
+	connection, _ := db.OpenConnection()
+	defer db.CloseConnection(connection)
+
 	// Set the REST API routes
-	routes := routes.InitRoutes()
+	routes := routes.InitRoutes(connection, cnf)
 	n := negroni.Classic()
 	n.Use(negronilogrus.NewMiddleware())
 	n.UseHandler(routes)
