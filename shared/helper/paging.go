@@ -8,23 +8,42 @@ import (
 )
 
 // PaginationFromRequest return the offset and rows from a request. If not
-// available then return the default of 1, 10. Return in order: offset, rows.
+// available then return the default of 1, 10. Returns in following order: offset, rows.
 func PaginationFromRequest(r *http.Request) (int, int) {
-	// get query param offset
+
+	// Keep compiler happy
+	var err error
+
+	// offset
 	var offsetString = r.URL.Query().Get("offset")
-
-	// get query param rows
-	var rowsString = r.URL.Query().Get("rows")
-
-	offset, err := strconv.Atoi(offsetString)
-	if err != nil {
+	var offset int
+	if len(offsetString) > 0 {
+		offset, err = strconv.Atoi(offsetString)
+		if err != nil {
+			offset = 1
+			logrus.Warnf("offset (%v) is not a number", offsetString)
+		}
+	}
+	// Prevent negative offset number
+	if offset < 1 {
 		offset = 1
-		logrus.Warn("offset (" + offsetString + ") is not a number")
 	}
-	rows, err := strconv.Atoi(rowsString)
-	if err != nil {
+
+	// rows
+	var rowsString = r.URL.Query().Get("rows")
+	var rows int
+	if len(rowsString) > 0 {
+		rows, err = strconv.Atoi(rowsString)
+		if err != nil {
+			rows = 10
+			logrus.Warnf("rows (%v) is not a number", rowsString)
+		}
+	}
+	// Prevent negative rows number
+	if rows < 1 {
 		rows = 10
-		logrus.Warn("rows (" + rowsString + ") is not a number")
 	}
+
+	// return
 	return offset, rows
 }
