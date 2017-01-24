@@ -16,7 +16,7 @@ import (
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 )
 
-// OpenConnection method
+// OpenConnection method. This method is being used by the main function. For testing the database is being mocked.
 func OpenConnection() (*sql.DB, error) {
 
 	cnf := config.LoadConfig()
@@ -48,6 +48,7 @@ func CloseConnection(db *sql.DB) {
 	db.Close()
 }
 
+// GetUserByID returns an models.User identified by it's ID or a ErrUserNotFound error when the user cannot be found.
 func GetUserByID(db *sql.DB, ID int) (models.User, error) {
 	rows, err := db.Query("SELECT id, username, createdAt, password, email FROM users WHERE id = ?", ID)
 	if err != nil {
@@ -70,6 +71,7 @@ func GetUserByID(db *sql.DB, ID int) (models.User, error) {
 	return models.User{}, ErrUserNotFound
 }
 
+// CreateUser create an user in the database and returns the ID of the user being inserted. This method returns a ErrUsernameIsNotUnique or ErrEmailIsNotUnique when the username or email of an user is not unique.
 func CreateUser(db *sql.DB, user *models.User) (int, error) {
 	// check unique username
 	query := "SELECT * FROM users WHERE username = ?"
@@ -112,6 +114,7 @@ func CreateUser(db *sql.DB, user *models.User) (int, error) {
 	return int(id), nil
 }
 
+// UpdateUser updates the username and email of an user. (note: this method does not check if user is authorized to update this row)
 func UpdateUser(db *sql.DB, user *models.User) (int, error) {
 	_, err := db.Exec("UPDATE users SET username = ?, email = ? WHERE id = ?", user.Username, user.Email, user.ID)
 	if err != nil {
@@ -122,6 +125,7 @@ func UpdateUser(db *sql.DB, user *models.User) (int, error) {
 	return user.ID, nil
 }
 
+// DeleteUser deletes an user from the database. Method does not check if the caller is authorized to perform this action. Method returns the number of rows affected by query. (should be 1)
 func DeleteUser(db *sql.DB, user *models.User) (int, error) {
 	if user.ID > 0 {
 		res, err := db.Exec("DELETE from users WHERE id = ?", user.ID)
@@ -143,6 +147,7 @@ func DeleteUser(db *sql.DB, user *models.User) (int, error) {
 
 }
 
+// GetUsers returns a list of all database-users. Note: Consider implementing a paging function because this method returns EVERY users at once.
 func GetUsers(db *sql.DB) ([]models.User, error) {
 
 	rows, err := db.Query("SELECT id, username, email, createdAt FROM users")
@@ -165,6 +170,7 @@ func GetUsers(db *sql.DB) ([]models.User, error) {
 	return persons, nil
 }
 
+// GetUsernames is a method used by the IPC handler. It will return all usernames based on a list of ID's.
 func GetUsernames(db *sql.DB, identifiers []*sharedModels.GetUsernamesRequest) ([]*sharedModels.GetUsernamesResponse, error) {
 
 	if len(identifiers) < 1 {
@@ -214,7 +220,10 @@ func inQueryBuilder(identifiers []*sharedModels.GetUsernamesRequest) string {
 	return query
 }
 
+// ErrEmailIsNotUnique error is the email is not unique
 var ErrEmailIsNotUnique = errors.New("Email must be unique")
+
+// ErrUsernameIsNotUnique error if the username is not unique
 var ErrUsernameIsNotUnique = errors.New("Username must be unique")
 
 // ErrUserNotFound error if user does not exist in database

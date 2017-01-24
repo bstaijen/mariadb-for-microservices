@@ -30,6 +30,7 @@ func (a TestHash) Match(v driver.Value) bool {
 	return ok
 }
 
+// Test creating an user.
 func TestCreateUser(t *testing.T) {
 
 	user := &models.User{}
@@ -80,7 +81,7 @@ func TestCreateUser(t *testing.T) {
 
 	// Make sure response is alright
 	responseUser := &models.User{}
-	err = toJSON(res.Body, responseUser)
+	err = decodeJSON(res.Body, responseUser)
 	if err != nil {
 		t.Fatal(errors.New("Bad json"))
 		return
@@ -101,6 +102,7 @@ func TestCreateUser(t *testing.T) {
 	}
 }
 
+// Test creating an user when a bad json string is provided. We expect an error message.
 func TestBadJson(t *testing.T) {
 	db, _, err := sqlmock.New()
 	if err != nil {
@@ -124,9 +126,9 @@ func TestBadJson(t *testing.T) {
 	}
 }
 
+// Test creating a user without providing a username. We expect an error message.
 func TestCreateUserWithoutUsername(t *testing.T) {
 	user := &models.User{}
-	//user.Username = "username"
 
 	json, _ := json.Marshal(user)
 
@@ -153,6 +155,7 @@ func TestCreateUserWithoutUsername(t *testing.T) {
 	}
 }
 
+// Test creating an user without providing a password. We expect an error message.
 func TestCreateUserWithoutPassword(t *testing.T) {
 	user := &models.User{}
 	user.Email = "test@example.com"
@@ -183,6 +186,7 @@ func TestCreateUserWithoutPassword(t *testing.T) {
 	}
 }
 
+// Test creating an user without providing an email address. We expect an error message.
 func TestCreateUserWithoutEmail(t *testing.T) {
 	user := &models.User{}
 	user.Username = "username"
@@ -212,7 +216,8 @@ func TestCreateUserWithoutEmail(t *testing.T) {
 	}
 }
 
-func toJSON(r io.Reader, target interface{}) error {
+// Helper function to decode a json string to an interface
+func decodeJSON(r io.Reader, target interface{}) error {
 	err := json.NewDecoder(r).Decode(target)
 	if err != nil {
 		fmt.Printf("json decoder error occured: %v \n", err.Error())
@@ -221,6 +226,7 @@ func toJSON(r io.Reader, target interface{}) error {
 	return nil
 }
 
+// Test deleting an user.
 func TestDeleteUser(t *testing.T) {
 	cnf := config.Config{}
 	cnf.SecretKey = "ABCDEF"
@@ -274,6 +280,7 @@ func TestDeleteUser(t *testing.T) {
 	}
 }
 
+// Test updating an user.
 func TestUpdateUser(t *testing.T) {
 	cnf := config.Config{}
 	cnf.SecretKey = "ABCDEF"
@@ -309,6 +316,7 @@ func TestUpdateUser(t *testing.T) {
 	}
 }
 
+// Test converting a json string to a list with ID's
 func TestBodyToArrayWithIDs(t *testing.T) {
 	mock := []byte(`{ "requests":[{"id":1} ,{"id":2},{"id":3}, {"id":4} ]}`)
 	req, err := http.NewRequest("GET", "http://localhost/", bytes.NewBuffer([]byte(mock)))
@@ -327,6 +335,7 @@ func TestBodyToArrayWithIDs(t *testing.T) {
 	}
 }
 
+// Get an user by it's index.
 func TestGetUserByIndex(t *testing.T) {
 	// Mock user object
 	user := getTestUser()
@@ -371,6 +380,7 @@ func TestGetUserByIndex(t *testing.T) {
 	}
 }
 
+// Test IPC for getting usernames based on a list of ID's
 func TestGetUsernamesHandler(t *testing.T) {
 	// Mock user object
 	user1 := getTestUser()

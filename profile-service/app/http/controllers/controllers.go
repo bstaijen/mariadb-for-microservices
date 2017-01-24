@@ -202,6 +202,7 @@ func GetUsernamesHandler(connection *sql.DB) negroni.HandlerFunc {
 	})
 }
 
+// Converts a json object to a list of ID's. Expects JSON to be in the following format: {"requests":[{"id":1},{"id":2},{"id":3},{"id":4} ]}
 func bodyToArrayWithIDs(req *http.Request) ([]*sharedModels.GetUsernamesRequest, error) {
 	data, _ := ioutil.ReadAll(req.Body)
 	defer req.Body.Close()
