@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"strconv"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/config"
 
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
-	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 )
 
 // OpenConnection method
@@ -27,7 +27,7 @@ func OpenConnection() (*sql.DB, error) {
 	port := cnf.DBPort
 	database := cnf.Database
 
-	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", username, password, host, port, database)
+	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true", username, password, host, port, database)
 
 	log.Debugf("Connect to : %v\n", dsn)
 	db, err := sql.Open("mysql", dsn)
@@ -57,7 +57,7 @@ func GetUserByID(db *sql.DB, ID int) (models.User, error) {
 	if rows.Next() {
 		var id int
 		var username string
-		var createdAt string
+		var createdAt time.Time
 		var password string
 		var email string
 		err = rows.Scan(&id, &username, &createdAt, &password, &email)
@@ -65,7 +65,7 @@ func GetUserByID(db *sql.DB, ID int) (models.User, error) {
 			return models.User{}, err
 		}
 
-		return models.User{ID: id, Username: username, CreatedAt: util.TimeHelper(createdAt), Password: password, Email: email}, nil
+		return models.User{ID: id, Username: username, CreatedAt: createdAt, Password: password, Email: email}, nil
 	}
 	return models.User{}, ErrUserNotFound
 }
@@ -155,12 +155,12 @@ func GetUsers(db *sql.DB) ([]models.User, error) {
 		var id int
 		var username string
 		var email string
-		var createdAt string
+		var createdAt time.Time
 		err = rows.Scan(&id, &username, &email, &createdAt)
 		if err != nil {
 			return nil, err
 		}
-		persons = append(persons, models.User{ID: id, Username: username, CreatedAt: util.TimeHelper(createdAt)})
+		persons = append(persons, models.User{ID: id, Username: username, CreatedAt: createdAt})
 	}
 	return persons, nil
 }

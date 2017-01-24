@@ -193,8 +193,6 @@ func TestNoTokenProvided(t *testing.T) {
 }
 
 func TestBadToken(t *testing.T) {
-	// FUTURE: Test expired token
-
 	cnf := config.Config{}
 	cnf.SecretKey = "ThisIsNotAGoodSecretKey"
 

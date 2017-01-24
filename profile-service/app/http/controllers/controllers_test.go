@@ -278,27 +278,9 @@ func TestUpdateUser(t *testing.T) {
 	cnf := config.Config{}
 	cnf.SecretKey = "ABCDEF"
 
-	user := &models.User{}
-	user.ID = 1
-	user.Email = "username@example.com"
-	user.Password = "password"
-	user.Username = "username"
+	user := getTestUser()
+	tokenString := getTokenString(cnf, user, t)
 
-	// Create JWT object with claims
-	expiration := time.Now().Add(time.Hour * 24 * 31).Unix()
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
-		"iat": time.Now().Unix(),
-		"exp": expiration,
-	})
-
-	// Generate a signed token
-	secretKey := cnf.SecretKey
-	tokenString, err := token.SignedString([]byte(secretKey))
-	if err != nil {
-		t.Error(err)
-		return
-	}
 	json, _ := json.Marshal(user)
 	req, err := http.NewRequest("PUT", "http://localhost/users?token="+tokenString, bytes.NewBuffer(json))
 	if err != nil {
@@ -347,11 +329,7 @@ func TestBodyToArrayWithIDs(t *testing.T) {
 
 func TestGetUserByIndex(t *testing.T) {
 	// Mock user object
-	user := &models.User{}
-	user.ID = 1
-	user.Email = "username@example.com"
-	user.Password = "password"
-	user.Username = "username"
+	user := getTestUser()
 
 	// Mock database
 	db, mock, err := sqlmock.New()
@@ -394,14 +372,12 @@ func TestGetUserByIndex(t *testing.T) {
 }
 
 func TestGetUsernamesHandler(t *testing.T) {
-	//
-
 	// Mock user object
-	user1 := &models.User{}
+	user1 := getTestUser()
 	user1.ID = 1
 	user1.Username = "username1"
 
-	user2 := &models.User{}
+	user2 := getTestUser()
 	user2.ID = 2
 	user2.Username = "username2"
 	// Mock database
@@ -453,4 +429,105 @@ func TestGetUsernamesHandler(t *testing.T) {
 	if res.Result().StatusCode != 200 {
 		t.Errorf("Expected statuscode to be 200 but got %v", res.Result().StatusCode)
 	}
+}
+
+// In this test we'll login as user1 and we try to change user2. This is not allowed therefore we expect an error.
+func TestTryUpdateOtherUser(t *testing.T) {
+	cnf := config.Config{}
+	cnf.SecretKey = "ABCDEF"
+
+	user1 := getTestUser()
+	user1.ID = 1
+	user1.Username = "user1"
+
+	user2 := getTestUser()
+	user2.ID = 2
+	user2.Username = "user2"
+
+	tokenString := getTokenString(cnf, user1, t)
+
+	json, _ := json.Marshal(user2)
+	req, err := http.NewRequest(http.MethodPut, "http://localhost/users?token="+tokenString, bytes.NewBuffer(json))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res := httptest.NewRecorder()
+	handler := UpdateUserHandler(nil, cnf)
+	handler(res, req, nil)
+
+	// Make sure expectations are met
+	expected := `{"message":"you can only change your own user object"}`
+	if res.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			res.Body.String(), expected)
+	}
+	if res.Result().StatusCode != 400 {
+		t.Errorf("Expected statuscode to be 400 but got %v", res.Result().StatusCode)
+	}
+}
+
+// In this test we'll login as user1 and we try to delete user2. This is not allowed therefore we expect an error.
+func TestTryDeleteOtherUser(t *testing.T) {
+	cnf := config.Config{}
+	cnf.SecretKey = "ABCDEF"
+
+	user1 := getTestUser()
+	user1.ID = 1
+	user1.Username = "user1"
+
+	user2 := getTestUser()
+	user2.ID = 2
+	user2.Username = "user2"
+
+	tokenString := getTokenString(cnf, user1, t)
+
+	json, _ := json.Marshal(user2)
+	req, err := http.NewRequest(http.MethodDelete, "http://localhost/users?token="+tokenString, bytes.NewBuffer(json))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res := httptest.NewRecorder()
+	handler := UpdateUserHandler(nil, cnf)
+	handler(res, req, nil)
+
+	// Make sure expectations are met
+	expected := `{"message":"you can only change your own user object"}`
+	if res.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			res.Body.String(), expected)
+	}
+	if res.Result().StatusCode != 400 {
+		t.Errorf("Expected statuscode to be 400 but got %v", res.Result().StatusCode)
+	}
+}
+
+func getTestUser() *models.User {
+	user := &models.User{}
+	user.ID = 1
+	user.Email = "username@example.com"
+	user.Password = "password"
+	user.Username = "username"
+	user.CreatedAt = time.Now()
+	user.Hash = "TempFakeHash"
+	return user
+}
+
+func getTokenString(cnf config.Config, user *models.User, t *testing.T) string {
+	expiration := time.Now().Add(time.Hour * 24 * 31).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"iat": time.Now().Unix(),
+		"exp": expiration,
+	})
+
+	// Generate a signed token
+	secretKey := cnf.SecretKey
+	tokenString, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		t.Error(err)
+		return ""
+	}
+	return tokenString
 }

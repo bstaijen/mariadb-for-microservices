@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"runtime/debug"
 	"time"
 )
 
@@ -10,6 +11,7 @@ func TimeHelper(v string) time.Time {
 	t, err := time.Parse(layout, v)
 
 	if err != nil {
+		debug.PrintStack()
 		fmt.Printf("Warning, Time field error: %v\n", err)
 	}
 

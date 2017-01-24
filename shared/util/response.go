@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"log"
-
 	"errors"
 
 	"github.com/bstaijen/mariadb-for-microservices/shared/models"
@@ -40,7 +38,6 @@ func SendError(w http.ResponseWriter, err error) {
 func SendBadRequest(w http.ResponseWriter, err error) {
 	e := &models.Error{Message: err.Error()}
 	var errJSON, _ = json.Marshal(e)
-	log.Printf("Error: %v \n", string(errJSON))
 
 	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Set("Content-Type", "application/json")
