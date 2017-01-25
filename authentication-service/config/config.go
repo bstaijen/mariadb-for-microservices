@@ -15,9 +15,9 @@ type Config struct {
 }
 
 // LoadConfig returns the config from the environment variables
-func LoadConfig() *Config {
+func LoadConfig() Config {
 
-	config := &Config{}
+	config := Config{}
 
 	if _, ok := os.LookupEnv("PORT"); ok {
 		portString := os.Getenv("PORT")

@@ -7,10 +7,10 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
+	"time"
+
 	"github.com/bstaijen/mariadb-for-microservices/authentication-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/authentication-service/config"
-
-	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 )
 
 // MariaDB struct for holding all methods related to the database
@@ -39,7 +39,7 @@ func OpenConnection() (*sql.DB, error) {
 	port := cnf.DBPort
 	database := cnf.Database
 
-	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", username, password, host, port, database)
+	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true", username, password, host, port, database)
 
 	log.Debug("Connect to : %v\n", dsn)
 	db, err := sql.Open("mysql", dsn)
@@ -61,17 +61,9 @@ func CloseConnection(db *sql.DB) {
 }
 
 // GetUserByUsername return the models.User object based on the username
-func (mariaDB MariaDB) GetUserByUsername(username string) (models.User, error) {
-	// Open the connection and close it with defer
-	db, err := OpenConnection()
-	if err != nil {
-		return models.User{}, err
-	}
-	defer CloseConnection(db)
-
+func GetUserByUsername(db *sql.DB, username string) (models.User, error) {
 	// Query the database
-	query := "SELECT id, username, createdAt, password, email FROM users WHERE username = '" + username + "'"
-	rows, err := db.Query(query)
+	rows, err := db.Query("SELECT id, username, createdAt, password, email FROM users WHERE username = ? ", username)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -80,7 +72,7 @@ func (mariaDB MariaDB) GetUserByUsername(username string) (models.User, error) {
 	if rows.Next() {
 		var id int
 		var username string
-		var createdAt string
+		var createdAt time.Time
 		var password string
 		var email string
 		err = rows.Scan(&id, &username, &createdAt, &password, &email)
@@ -88,7 +80,7 @@ func (mariaDB MariaDB) GetUserByUsername(username string) (models.User, error) {
 			return models.User{}, err
 		}
 
-		return models.User{ID: id, Username: username, CreatedAt: util.TimeHelper(createdAt), Password: password, Email: email}, nil
+		return models.User{ID: id, Username: username, CreatedAt: createdAt, Password: password, Email: email}, nil
 	}
 	return models.User{}, ErrUserNotFound
 }

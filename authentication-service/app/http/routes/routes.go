@@ -1,21 +1,24 @@
 package routes
 
 import (
+	"database/sql"
+
 	"github.com/bstaijen/mariadb-for-microservices/authentication-service/app/http/controllers"
+	"github.com/bstaijen/mariadb-for-microservices/authentication-service/config"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util/middleware"
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
 
 // InitRoutes instantiates a new gorilla/mux router
-func InitRoutes() *mux.Router {
+func InitRoutes(db *sql.DB, cnf config.Config) *mux.Router {
 	router := mux.NewRouter()
-	router = setAuthenticationRoutes(router)
+	router = setAuthenticationRoutes(db, cnf, router)
 	return router
 }
 
 // setAuthenticationRoutes specifies all routes for the authentication service
-func setAuthenticationRoutes(router *mux.Router) *mux.Router {
+func setAuthenticationRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Router {
 
 	// Subrouter /token-auth
 	tokenAUTH := router.PathPrefix("/token-auth").Subrouter()
@@ -23,7 +26,7 @@ func setAuthenticationRoutes(router *mux.Router) *mux.Router {
 	// User Login POST /token-auth
 	tokenAUTH.Methods("POST").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(controllers.LoginHandler),
+		controllers.LoginHandler(db, cnf),
 	))
 
 	// OPTIONS /token-auth
@@ -35,7 +38,7 @@ func setAuthenticationRoutes(router *mux.Router) *mux.Router {
 	router.Handle("/refresh-token-auth",
 		negroni.New(
 			negroni.HandlerFunc(middleware.AccessControlHandler),
-			negroni.HandlerFunc(controllers.RefreshTokenHandler),
+			controllers.RefreshTokenHandler(db),
 		)).Methods("GET")
 	return router
 }
