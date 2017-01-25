@@ -10,7 +10,6 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/config"
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
-	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 )
 
 type MariaDB struct {
@@ -36,7 +35,7 @@ func OpenConnection() (*sql.DB, error) {
 	port := cnf.DBPort
 	database := cnf.Database
 
-	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", username, password, host, port, database)
+	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true", username, password, host, port, database)
 
 	log.Debug("Connect to : %v\n", dsn)
 	db, err := sql.Open("mysql", dsn)
@@ -57,19 +56,8 @@ func CloseConnection(db *sql.DB) {
 	db.Close()
 }
 
-func (mariaDB MariaDB) Create(comment *models.CommentCreate) (*sharedModels.CommentResponse, error) {
-	db, err := OpenConnection()
-	if err != nil {
-		return &sharedModels.CommentResponse{}, err
-	}
-	defer CloseConnection(db)
-
-	stmt, err := db.Prepare("INSERT INTO comments(user_id, photo_id, comment) VALUES(?,?,?)")
-	if err != nil {
-		return &sharedModels.CommentResponse{}, err
-	}
-
-	res, err := stmt.Exec(comment.UserID, comment.PhotoID, comment.Comment)
+func Create(db *sql.DB, comment *models.CommentCreate) (*sharedModels.CommentResponse, error) {
+	res, err := db.Exec("INSERT INTO comments(user_id, photo_id, comment) VALUES(?,?,?)", comment.UserID, comment.PhotoID, comment.Comment)
 	if err != nil {
 		return &sharedModels.CommentResponse{}, err
 	}
@@ -79,49 +67,28 @@ func (mariaDB MariaDB) Create(comment *models.CommentCreate) (*sharedModels.Comm
 		return &sharedModels.CommentResponse{}, err
 	}
 
-	c, err := mariaDB.GetCommentByID(int(insertedID))
+	c, err := GetCommentByID(db, int(insertedID))
 	if err != nil {
 		return &sharedModels.CommentResponse{}, err
 	}
 	return c, nil
 }
 
-func (mariaDB MariaDB) GetCommentByID(id int) (*sharedModels.CommentResponse, error) {
-	db, err := OpenConnection()
-	if err != nil {
-		return &sharedModels.CommentResponse{}, err
-	}
-	defer CloseConnection(db)
-
-	query := fmt.Sprintf("SELECT id, user_id, photo_id, comment, createdAt FROM comments WHERE id = %v", id)
-	rows, err := db.Query(query)
+func GetCommentByID(db *sql.DB, id int) (*sharedModels.CommentResponse, error) {
+	rows, err := db.Query("SELECT id, user_id, photo_id, comment, createdAt FROM comments WHERE id = ?", id)
 	if err != nil {
 		return &sharedModels.CommentResponse{}, err
 	}
 	if rows.Next() {
 		comment := &sharedModels.CommentResponse{}
-		var createdAt string
-
-		rows.Scan(&comment.ID, &comment.UserID, &comment.PhotoID, &comment.Comment, &createdAt)
-
-		comment.CreatedAt = util.TimeHelper(createdAt)
-
+		rows.Scan(&comment.ID, &comment.UserID, &comment.PhotoID, &comment.Comment, &comment.CreatedAt)
 		return comment, nil
 	}
 	return nil, ErrCommentNotFound
 }
 
-func (mariaDB MariaDB) GetComments(photoID, offset, nrOfRows int) ([]*sharedModels.CommentResponse, error) {
-	query := fmt.Sprintf("SELECT id, user_id, photo_id, comment, createdAt FROM comments WHERE photo_id=%v ORDER BY createdAt DESC LIMIT %v, %v", photoID, offset, nrOfRows)
-
-	// Database actions
-	db, err := OpenConnection()
-	if err != nil {
-		return nil, err
-	}
-	defer CloseConnection(db)
-
-	rows, err := db.Query(query)
+func GetComments(db *sql.DB, photoID, offset, nrOfRows int) ([]*sharedModels.CommentResponse, error) {
+	rows, err := db.Query("SELECT id, user_id, photo_id, comment, createdAt FROM comments WHERE photo_id=? ORDER BY createdAt DESC LIMIT ?, ?", photoID, offset, nrOfRows)
 	if err != nil {
 		return nil, err
 	}
@@ -129,15 +96,13 @@ func (mariaDB MariaDB) GetComments(photoID, offset, nrOfRows int) ([]*sharedMode
 	responses := make([]*sharedModels.CommentResponse, 0)
 	for rows.Next() {
 		obj := &sharedModels.CommentResponse{}
-		var createdAt string
-		rows.Scan(&obj.ID, &obj.UserID, &obj.PhotoID, &obj.Comment, &createdAt)
-		obj.CreatedAt = util.TimeHelper(createdAt)
+		rows.Scan(&obj.ID, &obj.UserID, &obj.PhotoID, &obj.Comment, &obj.CreatedAt)
 		responses = append(responses, obj)
 	}
 	return responses, nil
 }
 
-func (mariaDB MariaDB) GetCommentCount(items []*sharedModels.CommentCountRequest) ([]*sharedModels.CommentCountResponse, error) {
+func GetCommentCount(db *sql.DB, items []*sharedModels.CommentCountRequest) ([]*sharedModels.CommentCountResponse, error) {
 
 	if len(items) < 1 {
 		return nil, nil
@@ -154,13 +119,6 @@ func (mariaDB MariaDB) GetCommentCount(items []*sharedModels.CommentCountRequest
 		}
 	}
 
-	// Database actions
-	db, err := OpenConnection()
-	if err != nil {
-		return nil, err
-	}
-	defer CloseConnection(db)
-
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
@@ -175,7 +133,7 @@ func (mariaDB MariaDB) GetCommentCount(items []*sharedModels.CommentCountRequest
 	return responses, nil
 }
 
-func (mariaDB MariaDB) GetLastTenComments(items []*sharedModels.CommentRequest) ([]*sharedModels.CommentResponse, error) {
+func GetLastTenComments(db *sql.DB, items []*sharedModels.CommentRequest) ([]*sharedModels.CommentResponse, error) {
 	if len(items) < 1 {
 		return nil, nil
 	}
@@ -191,13 +149,6 @@ func (mariaDB MariaDB) GetLastTenComments(items []*sharedModels.CommentRequest) 
 		}
 	}
 
-	// Database actions
-	db, err := OpenConnection()
-	if err != nil {
-		return nil, err
-	}
-	defer CloseConnection(db)
-
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
@@ -206,9 +157,7 @@ func (mariaDB MariaDB) GetLastTenComments(items []*sharedModels.CommentRequest) 
 	responses := make([]*sharedModels.CommentResponse, 0)
 	for rows.Next() {
 		obj := &sharedModels.CommentResponse{}
-		var createdAt string
-		rows.Scan(&obj.ID, &obj.UserID, &obj.PhotoID, &obj.Comment, &createdAt)
-		obj.CreatedAt = util.TimeHelper(createdAt)
+		rows.Scan(&obj.ID, &obj.UserID, &obj.PhotoID, &obj.Comment, &obj.CreatedAt)
 		responses = append(responses, obj)
 	}
 	return responses, nil
