@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -33,11 +34,11 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc
 
 	// Read file
 	file, fileheader, err := r.FormFile("file")
-	util.PanicIfError(err)
+	PanicIfError(err)
 	defer file.Close()
 
 	image, err := ioutil.ReadAll(file)
-	util.PanicIfError(err)
+	PanicIfError(err)
 
 	// Get extensions, filename and contenttype
 	extension := strings.Split(fileheader.Filename, ".")[1]
@@ -102,4 +103,11 @@ func randomFileName() string {
 		res += strconv.Itoa(rand.Intn(10))
 	}
 	return res
+}
+
+func PanicIfError(err error) {
+	if err != nil {
+		log.Printf("Error: %s\n", err.Error())
+		panic(err)
+	}
 }

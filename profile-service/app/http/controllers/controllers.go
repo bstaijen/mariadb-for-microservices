@@ -2,10 +2,7 @@ package controllers
 
 import (
 	"database/sql"
-	"encoding/json"
-	"io/ioutil"
 	"net/http"
-	"runtime/debug"
 	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
@@ -16,7 +13,6 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/config"
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/database"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
-	"github.com/buger/jsonparser"
 
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 	"github.com/gorilla/mux"
@@ -49,7 +45,6 @@ func CreateUserHandler(connection *sql.DB) negroni.HandlerFunc {
 					util.SendBadRequest(w, err)
 					return
 				}
-				log.Debugln("GetUserByID")
 				createdUser, _ := db.GetUserByID(connection, createdID)
 				util.SendOK(w, createdUser)
 
@@ -166,7 +161,8 @@ func UserByIndexHandler(connection *sql.DB) negroni.HandlerFunc {
 
 		id, err := strconv.Atoi(strID)
 		if err != nil {
-			log.Error(err)
+			util.SendBadRequest(w, err)
+			return
 		}
 
 		user, err := db.GetUserByID(connection, id)
@@ -204,28 +200,16 @@ func GetUsernamesHandler(connection *sql.DB) negroni.HandlerFunc {
 
 // Converts a json object to a list of ID's. Expects JSON to be in the following format: {"requests":[{"id":1},{"id":2},{"id":3},{"id":4} ]}
 func bodyToArrayWithIDs(req *http.Request) ([]*sharedModels.GetUsernamesRequest, error) {
-	data, _ := ioutil.ReadAll(req.Body)
-	defer req.Body.Close()
-	objects := make([]*sharedModels.GetUsernamesRequest, 0)
-	_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-		if err != nil {
-			debug.PrintStack()
-			log.Error(err)
-			return
-		}
+	type Collection struct {
+		Objects []*sharedModels.GetUsernamesRequest `json:"requests"`
+	}
+	col := &Collection{}
+	col.Objects = make([]*sharedModels.GetUsernamesRequest, 0)
 
-		usernameReq := &sharedModels.GetUsernamesRequest{}
-		err = json.Unmarshal(value, usernameReq)
-		if err != nil {
-			debug.PrintStack()
-			log.Error(err)
-			return
-		}
-
-		objects = append(objects, usernameReq)
-	}, "requests")
+	err := util.RequestToJSON(req, &col)
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
 	}
-	return objects, nil
+	return col.Objects, nil
 }
