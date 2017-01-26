@@ -8,6 +8,7 @@ import (
 
 	"github.com/bstaijen/mariadb-for-microservices/vote-service/app/http/routes"
 	"github.com/bstaijen/mariadb-for-microservices/vote-service/config"
+	"github.com/bstaijen/mariadb-for-microservices/vote-service/database"
 	negronilogrus "github.com/meatballhat/negroni-logrus"
 
 	"github.com/urfave/negroni"
@@ -25,8 +26,12 @@ func main() {
 	// Get config
 	cnf := config.LoadConfig()
 
-	// Set routes
-	routes := routes.InitRoutes()
+	// Get database
+	connection, _ := db.OpenConnection()
+	defer db.CloseConnection(connection)
+
+	// Set the REST API routes
+	routes := routes.InitRoutes(connection, cnf)
 	n := negroni.Classic()
 	n.Use(negronilogrus.NewMiddleware())
 	n.UseHandler(routes)

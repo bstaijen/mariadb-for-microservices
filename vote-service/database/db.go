@@ -55,34 +55,20 @@ func CloseConnection(db *sql.DB) {
 	db.Close()
 }
 
-func (mariaDB MariaDB) Create(vote *sharedModels.VoteCreateRequest) error {
-	db, err := OpenConnection()
-	if err != nil {
-		return err
-	}
-	defer CloseConnection(db)
-
-	stmt, err := db.Prepare("DELETE FROM votes WHERE user_id=? AND photo_id=?")
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(vote.UserID, vote.PhotoID)
-	if err != nil {
-		return err
-	}
-	stmt, err = db.Prepare("INSERT INTO votes(user_id, photo_id, upvote, downvote) VALUES(?,?,?,?)")
+func Create(db *sql.DB, vote *sharedModels.VoteCreateRequest) error {
+	_, err := db.Exec("DELETE FROM votes WHERE user_id=? AND photo_id=?", vote.UserID, vote.PhotoID)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(vote.UserID, vote.PhotoID, vote.Upvote, vote.Downvote)
+	_, err = db.Exec("INSERT INTO votes(user_id, photo_id, upvote, downvote) VALUES(?,?,?,?)", vote.UserID, vote.PhotoID, vote.Upvote, vote.Downvote)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (mariaDB MariaDB) VoteCount(items []*sharedModels.VoteCountRequest) ([]*sharedModels.VoteCountResponse, error) {
+func VoteCount(db *sql.DB, items []*sharedModels.VoteCountRequest) ([]*sharedModels.VoteCountResponse, error) {
 	if len(items) < 1 {
 		return make([]*sharedModels.VoteCountResponse, 0), nil
 	}
@@ -91,7 +77,7 @@ func (mariaDB MariaDB) VoteCount(items []*sharedModels.VoteCountRequest) ([]*sha
 	query := "SELECT photo_id, sum(upvote), sum(downvote) FROM votes WHERE photo_id IN"
 	query += "("
 
-	for i := 0; i < len(items); i++ { // xx any oppportunities for sql injection here ?
+	for i := 0; i < len(items); i++ { // xx any oppportunities for sql injection here ? no, because ints and not text as param
 		if i+1 < len(items) {
 			// NOT LAST
 			query += strconv.Itoa(items[i].PhotoID) + ","
@@ -102,13 +88,6 @@ func (mariaDB MariaDB) VoteCount(items []*sharedModels.VoteCountRequest) ([]*sha
 	}
 
 	query += ") GROUP BY photo_id"
-
-	// DO DATABASE THINGS
-	db, err := OpenConnection() // xx  how often do we open / close databsases per request ?
-	if err != nil {
-		return nil, err
-	}
-	defer CloseConnection(db)
 
 	rows, err := db.Query(query)
 	if err != nil {
@@ -128,7 +107,7 @@ func (mariaDB MariaDB) VoteCount(items []*sharedModels.VoteCountRequest) ([]*sha
 	return photoCountResponses, nil
 }
 
-func (mariaDB MariaDB) HasVoted(items []*sharedModels.HasVotedRequest) ([]*sharedModels.HasVotedResponse, error) {
+func HasVoted(db *sql.DB, items []*sharedModels.HasVotedRequest) ([]*sharedModels.HasVotedResponse, error) {
 	if len(items) < 1 {
 		return make([]*sharedModels.HasVotedResponse, 0), nil
 	}
@@ -146,13 +125,6 @@ func (mariaDB MariaDB) HasVoted(items []*sharedModels.HasVotedRequest) ([]*share
 			query += fmt.Sprintf("(photo_id = %v AND user_id = %v)", strconv.Itoa(items[i].PhotoID), strconv.Itoa(items[i].UserID))
 		}
 	}
-
-	// DO DATABASE THINGS
-	db, err := OpenConnection()
-	if err != nil {
-		return nil, err
-	}
-	defer CloseConnection(db)
 
 	rows, err := db.Query(query)
 	if err != nil {
@@ -175,16 +147,8 @@ func (mariaDB MariaDB) HasVoted(items []*sharedModels.HasVotedRequest) ([]*share
 	return photoVotedResponses, nil
 }
 
-func (mariaDB MariaDB) GetTopRatedTimeline(offset int, nrOfRows int) ([]*sharedModels.TopRatedPhotoResponse, error) {
-	query := fmt.Sprintf("select photo_id, sum(upvote) as total_upvote, sum(downvote) as total_downvote, sum(upvote) - sum(downvote) as difference from votes group by photo_id order by difference desc LIMIT %v, %v", offset, nrOfRows)
-
-	db, err := OpenConnection()
-	if err != nil {
-		return nil, err
-	}
-	defer CloseConnection(db)
-
-	rows, err := db.Query(query)
+func GetTopRatedTimeline(db *sql.DB, offset int, nrOfRows int) ([]*sharedModels.TopRatedPhotoResponse, error) {
+	rows, err := db.Query("SELECT photo_id, sum(upvote) AS total_upvote, sum(downvote) AS total_downvote, sum(upvote) - sum(downvote) as difference FROM votes GROUP BY photo_id ORDER BY difference DESC LIMIT ?, ?", offset, nrOfRows)
 	if err != nil {
 		return nil, err
 	}
@@ -208,15 +172,8 @@ func (mariaDB MariaDB) GetTopRatedTimeline(offset int, nrOfRows int) ([]*sharedM
 	return photos, nil
 }
 
-func (mariaDB MariaDB) GetHotTimeline(offset int, nrOfRows int) ([]*sharedModels.TopRatedPhotoResponse, error) {
-	query := fmt.Sprintf("select photo_id, sum(upvote) as total_upvote, sum(downvote) as total_downvote, sum(upvote) - sum(downvote) as difference from votes where createdAt > DATE_SUB(now(), INTERVAL 1 DAY) group by photo_id order by difference desc LIMIT %v, %v", offset, nrOfRows)
-	db, err := OpenConnection()
-	if err != nil {
-		return nil, err
-	}
-	defer CloseConnection(db)
-
-	rows, err := db.Query(query)
+func GetHotTimeline(db *sql.DB, offset int, nrOfRows int) ([]*sharedModels.TopRatedPhotoResponse, error) {
+	rows, err := db.Query("SELECT photo_id, sum(upvote) AS total_upvote, sum(downvote) AS total_downvote, sum(upvote) - sum(downvote) AS difference FROM votes WHERE createdAt > DATE_SUB(now(), INTERVAL 1 DAY) GROUP BY photo_id ORDER BY difference DESC LIMIT ?, ?", offset, nrOfRows)
 	if err != nil {
 		return nil, err
 	}
