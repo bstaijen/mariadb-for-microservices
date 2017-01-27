@@ -24,8 +24,12 @@ func main() {
 	// Get config
 	cnf := config.LoadConfig()
 
-	// Get database
-	connection, _ := db.OpenConnection()
+	// Get database // TODO : wait for the DB to go online for max 1 min?
+	connection, err := db.OpenConnection()
+	if err != nil {
+		log.Infoln("Error when open connection to database.")
+		log.Error(err)
+	}
 	defer db.CloseConnection(connection)
 
 	// Set the REST API routes
