@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/database"
@@ -455,18 +454,6 @@ func voted(cnf config.Config, input []*sharedModels.HasVotedRequest) []*sharedMo
 		}
 	})
 	return hasVoted
-}
-
-// timeHelper. TODO : Refactor datetime
-func timeHelper(v string) time.Time {
-	layout := "2006-01-02T15:04:05Z"
-	t, err := time.Parse(layout, v)
-
-	if err != nil {
-		fmt.Printf("Warning, Time field error: %v\n", err)
-	}
-
-	return t
 }
 
 func getUserIDFromRequest(cnf config.Config, req *http.Request) (int, error) {

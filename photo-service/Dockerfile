@@ -1,4 +1,4 @@
-FROM golang:1.6
+FROM golang:1.7
 
 # Download and install any required third party dependencies into the container.
 RUN go get golang.org/x/crypto/bcrypt

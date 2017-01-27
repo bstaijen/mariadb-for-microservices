@@ -11,22 +11,10 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/vote-service/config"
 )
 
-type MariaDB struct {
-}
-
-var mariaDBInstance *MariaDB = nil
-
-func InitMariaDB() *MariaDB {
-	if mariaDBInstance == nil {
-		mariaDBInstance = &MariaDB{}
-	}
-	return mariaDBInstance
-}
-
-// OpenConnection method
+// OpenConnection opens the connection to the database
 func OpenConnection() (*sql.DB, error) {
 
-	cnf := config.LoadConfig() // what if this breaks ?
+	cnf := config.LoadConfig()
 
 	username := cnf.DBUsername
 	password := cnf.DBPassword
@@ -36,7 +24,7 @@ func OpenConnection() (*sql.DB, error) {
 
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", username, password, host, port, database)
 
-	log.Debug("Connect to : %v\n", dsn)
+	log.Debugf("Connect to : %v", dsn)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, ErrCanNotConnectWithDatabase
@@ -77,7 +65,7 @@ func VoteCount(db *sql.DB, items []*sharedModels.VoteCountRequest) ([]*sharedMod
 	query := "SELECT photo_id, sum(upvote), sum(downvote) FROM votes WHERE photo_id IN"
 	query += "("
 
-	for i := 0; i < len(items); i++ { // xx any oppportunities for sql injection here ? no, because ints and not text as param
+	for i := 0; i < len(items); i++ {
 		if i+1 < len(items) {
 			// NOT LAST
 			query += strconv.Itoa(items[i].PhotoID) + ","
@@ -107,6 +95,7 @@ func VoteCount(db *sql.DB, items []*sharedModels.VoteCountRequest) ([]*sharedMod
 	return photoCountResponses, nil
 }
 
+// HasVoted is a method which calculates whether or not a user has voted on a photo. Method accepts a list of photos and returns the result for each photo in the list.
 func HasVoted(db *sql.DB, items []*sharedModels.HasVotedRequest) ([]*sharedModels.HasVotedResponse, error) {
 	if len(items) < 1 {
 		return make([]*sharedModels.HasVotedResponse, 0), nil
@@ -147,6 +136,7 @@ func HasVoted(db *sql.DB, items []*sharedModels.HasVotedRequest) ([]*sharedModel
 	return photoVotedResponses, nil
 }
 
+// GetTopRatedTimeline returns an array of top rated photos. The array contains a list of ID's. Offset and nrOfRows can be used for pagination.
 func GetTopRatedTimeline(db *sql.DB, offset int, nrOfRows int) ([]*sharedModels.TopRatedPhotoResponse, error) {
 	rows, err := db.Query("SELECT photo_id, sum(upvote) AS total_upvote, sum(downvote) AS total_downvote, sum(upvote) - sum(downvote) as difference FROM votes GROUP BY photo_id ORDER BY difference DESC LIMIT ?, ?", offset, nrOfRows)
 	if err != nil {

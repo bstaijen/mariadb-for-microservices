@@ -11,18 +11,7 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
 )
 
-type MariaDB struct {
-}
-
-var mariaDBInstance *MariaDB = nil
-
-func InitMariaDB() *MariaDB {
-	if mariaDBInstance == nil {
-		mariaDBInstance = &MariaDB{}
-	}
-	return mariaDBInstance
-}
-
+// OpenConnection opens the connection to the database
 func OpenConnection() (*sql.DB, error) {
 
 	cnf := config.LoadConfig()

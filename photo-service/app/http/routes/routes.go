@@ -11,15 +11,17 @@ import (
 	"github.com/urfave/negroni"
 )
 
+// InitRoutes instantiates a new gorilla/mux router
 func InitRoutes(db *sql.DB, cnf config.Config) *mux.Router {
 	router := mux.NewRouter()
-	router = SetRoutes(db, cnf, router)
+	router = setPhotoRoutes(db, cnf, router)
 	return router
 }
 
-func SetRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Router {
+// setPhotoRoutes specifies all routes for the authentication service
+func setPhotoRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Router {
 
-	// Subroutr /image
+	// Subrouter /image
 	image := router.PathPrefix("/image").Subrouter()
 
 	// Options

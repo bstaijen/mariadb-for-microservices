@@ -13,21 +13,6 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/authentication-service/config"
 )
 
-// MariaDB struct for holding all methods related to the database
-type MariaDB struct {
-}
-
-// mariaDBInstance is a private var. used as singleton
-var mariaDBInstance *MariaDB
-
-// InitMariaDB returns the instance of MariaDB
-func InitMariaDB() *MariaDB {
-	if mariaDBInstance == nil {
-		mariaDBInstance = &MariaDB{}
-	}
-	return mariaDBInstance
-}
-
 // OpenConnection opens the connection to the database
 func OpenConnection() (*sql.DB, error) {
 

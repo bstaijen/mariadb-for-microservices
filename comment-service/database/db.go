@@ -12,18 +12,6 @@ import (
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 )
 
-type MariaDB struct {
-}
-
-var mariaDBInstance *MariaDB = nil
-
-func InitMariaDB() *MariaDB {
-	if mariaDBInstance == nil {
-		mariaDBInstance = &MariaDB{}
-	}
-	return mariaDBInstance
-}
-
 // OpenConnection method
 func OpenConnection() (*sql.DB, error) {
 

@@ -16,8 +16,6 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal) {
                 $scope.lastCommentsLoaded = false;
                 // set page to 1
                 $scope.page = 1;
-
-
             }
 
             $scope.loadComments = function () {
