@@ -2,20 +2,18 @@ package main
 
 import (
 	"net/http"
-
-	log "github.com/Sirupsen/logrus"
+	"strconv"
 
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/app/http/routes"
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
+	"github.com/bstaijen/mariadb-for-microservices/photo-service/database"
 	negronilogrus "github.com/meatballhat/negroni-logrus"
-
-	"strconv"
-
 	"github.com/urfave/negroni"
 
 	// go-sql-driver/mysql is needed for the database connection
 	_ "github.com/go-sql-driver/mysql"
 
+	log "github.com/Sirupsen/logrus"
 	_ "github.com/joho/godotenv/autoload"
 )
 
@@ -26,11 +24,15 @@ func main() {
 	// Get config
 	cnf := config.LoadConfig()
 
+	// Get database
+	connection, _ := db.OpenConnection()
+	defer db.CloseConnection(connection)
+
 	// Set the REST API routes
-	router := routes.InitRoutes()
+	r := routes.InitRoutes(connection, cnf)
 	n := negroni.Classic()
 	n.Use(negronilogrus.NewMiddleware())
-	n.UseHandler(router)
+	n.UseHandler(r)
 
 	// Start and listen on port in cbf.Port
 	log.Info("Starting server on port " + strconv.Itoa(cnf.Port))

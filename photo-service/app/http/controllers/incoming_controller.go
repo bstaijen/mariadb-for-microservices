@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/database"
+	"github.com/urfave/negroni"
 
 	"io/ioutil"
 
@@ -22,103 +24,108 @@ import (
 )
 
 // IncomingHandler is the handler for serving the default photos timeline
-func IncomingHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	// Get user ID. It is allowed to be 0.
-	userID, _ := getUserIDFromRequest(r)
+func IncomingHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
+	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		// Get user ID. It is allowed to be 0.
+		userID, _ := getUserIDFromRequest(cnf, r)
 
-	// get offset and rows
-	offset, rows := helper.PaginationFromRequest(r)
+		// get offset and rows
+		offset, rows := helper.PaginationFromRequest(r)
 
-	database := db.InitMariaDB()
-	photos, err := database.ListIncoming(offset, rows)
-	if err != nil {
-		util.SendError(w, err)
-		return
-	}
-	photos = findResources(photos, userID, true, true, true)
-	util.SendOK(w, photos)
+		photos, err := db.ListIncoming(connection, offset, rows)
+		if err != nil {
+			util.SendError(w, err)
+			return
+		}
+		photos = findResources(cnf, photos, userID, true, true, true)
+		util.SendOK(w, photos)
+	})
 }
 
 // TopRatedHandler is the handler for serving the Top Rated photos timeline
-func TopRatedHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	// Get user ID. It is allowed to be 0.
-	userID, _ := getUserIDFromRequest(r)
+func TopRatedHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
+	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		// Get user ID. It is allowed to be 0.
+		userID, _ := getUserIDFromRequest(cnf, r)
 
-	// get offset and rows and pass into URL toprated
-	offset, rows := helper.PaginationFromRequest(r)
+		// get offset and rows and pass into URL toprated
+		offset, rows := helper.PaginationFromRequest(r)
 
-	// Make url
-	urlpart := fmt.Sprintf("ipc/toprated?offset=%v&rows=%v", offset, rows)
-	url := config.LoadConfig().VoteServiceBaseurl + urlpart
+		// Make url
+		urlpart := fmt.Sprintf("ipc/toprated?offset=%v&rows=%v", offset, rows)
+		url := cnf.VoteServiceBaseurl + urlpart
 
-	// Save object
-	photos := make([]*models.Photo, 0)
+		// Save object
+		photos := make([]*models.Photo, 0)
 
-	// GET
-	util.Request("GET", url, []byte(string("")), func(res *http.Response) {
-		data, err := ioutil.ReadAll(res.Body)
-		if err == nil {
-			dab := db.InitMariaDB()
-			jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-				obj := &sharedModels.TopRatedPhotoResponse{}
-				json.Unmarshal(value, obj)
-				photo, err := dab.GetPhotoById(obj.PhotoID)
-				photos = append(photos, photo)
-			}, "results")
-		}
+		// GET
+		util.Request("GET", url, []byte(string("")), func(res *http.Response) {
+			data, err := ioutil.ReadAll(res.Body)
+			if err == nil {
+				jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+					obj := &sharedModels.TopRatedPhotoResponse{}
+					json.Unmarshal(value, obj)
+					photo, err := db.GetPhotoById(connection, obj.PhotoID)
+					if photo != nil {
+						photos = append(photos, photo)
+					}
+				}, "results")
+			}
+		})
+
+		photos = findResources(cnf, photos, userID, true, true, true)
+		util.SendOK(w, photos)
 	})
-
-	photos = findResources(photos, userID, true, true, true)
-	util.SendOK(w, photos)
 }
 
 // HotHandler is the handler for serving the Hot photos timeline
-func HotHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	userID, _ := getUserIDFromRequest(r)
+func HotHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
+	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		userID, _ := getUserIDFromRequest(cnf, r)
 
-	// get offset and rows and pass into URL toprated
-	offset, rows := helper.PaginationFromRequest(r)
+		// get offset and rows and pass into URL toprated
+		offset, rows := helper.PaginationFromRequest(r)
 
-	// Make url
-	urlpart := fmt.Sprintf("ipc/hot?offset=%v&rows=%v", offset, rows)
-	url := config.LoadConfig().VoteServiceBaseurl + urlpart
+		// Make url
+		urlpart := fmt.Sprintf("ipc/hot?offset=%v&rows=%v", offset, rows)
+		url := cnf.VoteServiceBaseurl + urlpart
 
-	// Save object
-	photos := make([]*models.Photo, 0)
+		// Save object
+		photos := make([]*models.Photo, 0)
 
-	// GET
-	util.Request("GET", url, []byte(string("")), func(res *http.Response) {
-		// Error handling
-		if res.StatusCode < 200 || res.StatusCode > 299 {
-			logrus.Errorf("ERROR with code %v.", res.Status)
-			data, _ := ioutil.ReadAll(res.Body)
-			logrus.Error(string(data))
+		// GET
+		util.Request("GET", url, []byte(string("")), func(res *http.Response) {
+			// Error handling
+			if res.StatusCode < 200 || res.StatusCode > 299 {
+				logrus.Errorf("ERROR with code %v.", res.Status)
+				data, _ := ioutil.ReadAll(res.Body)
+				logrus.Error(string(data))
 
-			util.SendErrorMessage(w, "Could not retrieve photos.")
-			return
-		}
+				util.SendErrorMessage(w, "Could not retrieve photos.")
+				return
+			}
 
-		// Happy path
-		data, err := ioutil.ReadAll(res.Body)
-		if err == nil {
-			dab := db.InitMariaDB()
-			jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-				obj := &sharedModels.TopRatedPhotoResponse{}
-				json.Unmarshal(value, obj)
-				photo, err := dab.GetPhotoById(obj.PhotoID)
-				photos = append(photos, photo)
-			}, "results")
-		}
+			// Happy path
+			data, err := ioutil.ReadAll(res.Body)
+			if err == nil {
+				jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+					obj := &sharedModels.TopRatedPhotoResponse{}
+					json.Unmarshal(value, obj)
+					photo, err := db.GetPhotoById(connection, obj.PhotoID)
+					photos = append(photos, photo)
+				}, "results")
+			}
+		})
+
+		photos = findResources(cnf, photos, userID, true, true, true)
+		util.SendOK(w, photos)
 	})
-
-	photos = findResources(photos, userID, true, true, true)
-	util.SendOK(w, photos)
 }
 
 // FindResources searches for related resources to a collection of photos and adds them to the photo object.
 // By specifying parameters the caller of this func can determine which resources will be added and which
 // will be skippd. If userID is 0 or less then this func cannot determine if the user has voted on the photos.
-func findResources(photos []*models.Photo, userID int, comments bool, usernames bool, votes bool) []*models.Photo {
+func findResources(cnf config.Config, photos []*models.Photo, userID int, comments bool, usernames bool, votes bool) []*models.Photo {
 
 	// PhotoID holder
 	photoCountIdentifiers := make([]*sharedModels.VoteCountRequest, 0)
@@ -153,24 +160,24 @@ func findResources(photos []*models.Photo, userID int, comments bool, usernames 
 
 	// Searches and adds comments to the photos
 	if comments {
-		photos = appendComments(photoCommentsIdentifiers, photos)
-		photos = appendCommentCount(photoCommentCountIdentifiers, photos)
+		photos = appendComments(cnf, photoCommentsIdentifiers, photos)
+		photos = appendCommentCount(cnf, photoCommentCountIdentifiers, photos)
 	}
 
 	// Searches and adds usernames to the photos
 	if usernames {
-		photos = appendUsernames(photoUsernamesIndentifiers, photos)
+		photos = appendUsernames(cnf, photoUsernamesIndentifiers, photos)
 	}
 
 	// Searches and adds the votes count on each photo and
 	// whether or not the user has voted on this particular picture.
 	if votes {
 
-		photos = appendVotesCount(photoCountIdentifiers, photos)
+		photos = appendVotesCount(cnf, photoCountIdentifiers, photos)
 
 		// Get up/downvote from requesting user and add them
 		if userID > 0 {
-			photos = appendUserVoted(photoVotedIdentifiers, photos)
+			photos = appendUserVoted(cnf, photoVotedIdentifiers, photos)
 		} else {
 			fmt.Printf("Warning: UserID is to small for voting. User ID : %v\n", userID)
 		}
@@ -179,8 +186,8 @@ func findResources(photos []*models.Photo, userID int, comments bool, usernames 
 }
 
 // appendComments triggers `GET comments request` (last 10 comments for each photo) and appends results to []Photo
-func appendComments(photoCommentsIdentifiers []*sharedModels.CommentRequest, photos []*models.Photo) []*models.Photo {
-	comments := getComments(photoCommentsIdentifiers)
+func appendComments(cnf config.Config, photoCommentsIdentifiers []*sharedModels.CommentRequest, photos []*models.Photo) []*models.Photo {
+	comments := getComments(cnf, photoCommentsIdentifiers)
 	for ind := 0; ind < len(photos); ind++ {
 
 		// Get reference
@@ -199,8 +206,8 @@ func appendComments(photoCommentsIdentifiers []*sharedModels.CommentRequest, pho
 	return photos
 }
 
-func appendCommentCount(photoCommentCountIdentifiers []*sharedModels.CommentCountRequest, photos []*models.Photo) []*models.Photo {
-	count := getCommentCount(photoCommentCountIdentifiers)
+func appendCommentCount(cnf config.Config, photoCommentCountIdentifiers []*sharedModels.CommentCountRequest, photos []*models.Photo) []*models.Photo {
+	count := getCommentCount(cnf, photoCommentCountIdentifiers)
 	for ind := 0; ind < len(photos); ind++ {
 		// Get reference
 		phot := photos[ind]
@@ -215,9 +222,9 @@ func appendCommentCount(photoCommentCountIdentifiers []*sharedModels.CommentCoun
 }
 
 // appendUsernames triggers `GET usernames request` and appends result to []Photo
-func appendUsernames(photoUsernamesIndentifiers []*sharedModels.GetUsernamesRequest, photos []*models.Photo) []*models.Photo {
+func appendUsernames(cnf config.Config, photoUsernamesIndentifiers []*sharedModels.GetUsernamesRequest, photos []*models.Photo) []*models.Photo {
 	// Append the username to the photos
-	usernames := getUsername(photoUsernamesIndentifiers)
+	usernames := getUsername(cnf, photoUsernamesIndentifiers)
 	for index := 0; index < len(photos); index++ {
 		photoObject := photos[index]
 		for resultIndex := 0; resultIndex < len(usernames); resultIndex++ {
@@ -231,9 +238,9 @@ func appendUsernames(photoUsernamesIndentifiers []*sharedModels.GetUsernamesRequ
 }
 
 // appendVotesCount triggers `GET votes request` and appends result to []Photo
-func appendVotesCount(photoCountIdentifiers []*sharedModels.VoteCountRequest, photos []*models.Photo) []*models.Photo {
+func appendVotesCount(cnf config.Config, photoCountIdentifiers []*sharedModels.VoteCountRequest, photos []*models.Photo) []*models.Photo {
 	// Get the vote counts and add them
-	results := getVotes(photoCountIdentifiers)
+	results := getVotes(cnf, photoCountIdentifiers)
 	for index := 0; index < len(photos); index++ {
 		photoObject := photos[index]
 
@@ -251,8 +258,8 @@ func appendVotesCount(photoCountIdentifiers []*sharedModels.VoteCountRequest, ph
 
 // appendUserVoted triggers `GET voted request` and appends results to []Photo. This function will
 // lookup whether the user has voted on the Photo
-func appendUserVoted(photoVotedIdentifiers []*sharedModels.HasVotedRequest, photos []*models.Photo) []*models.Photo {
-	youVoted := voted(photoVotedIdentifiers)
+func appendUserVoted(cnf config.Config, photoVotedIdentifiers []*sharedModels.HasVotedRequest, photos []*models.Photo) []*models.Photo {
+	youVoted := voted(cnf, photoVotedIdentifiers)
 
 	for index := 0; index < len(photos); index++ {
 		photoObject := photos[index]
@@ -269,13 +276,13 @@ func appendUserVoted(photoVotedIdentifiers []*sharedModels.HasVotedRequest, phot
 }
 
 // Get the usernames from the ProfileService
-func getUsername(input []*sharedModels.GetUsernamesRequest) []*sharedModels.GetUsernamesResponse {
+func getUsername(cnf config.Config, input []*sharedModels.GetUsernamesRequest) []*sharedModels.GetUsernamesResponse {
 	type Req struct {
 		Requests []*sharedModels.GetUsernamesRequest `json:"requests"`
 	}
 	body, _ := json.Marshal(Req{Requests: input})
 	// Make url
-	url := config.LoadConfig().ProfileServiceBaseurl + "ipc/usernames"
+	url := cnf.ProfileServiceBaseurl + "ipc/usernames"
 
 	// Return object
 	usernames := make([]*sharedModels.GetUsernamesResponse, 0)
@@ -305,14 +312,14 @@ func getUsername(input []*sharedModels.GetUsernamesRequest) []*sharedModels.GetU
 }
 
 // Get comments from CommentsService
-func getComments(input []*sharedModels.CommentRequest) []*sharedModels.CommentResponse {
+func getComments(cnf config.Config, input []*sharedModels.CommentRequest) []*sharedModels.CommentResponse {
 	type Req struct {
 		Requests []*sharedModels.CommentRequest `json:"requests"`
 	}
 	body, _ := json.Marshal(Req{Requests: input})
 
 	// Make url
-	url := config.LoadConfig().CommentServiceBaseurl + "ipc/getLast10"
+	url := cnf.CommentServiceBaseurl + "ipc/getLast10"
 
 	// Return object
 	comments := make([]*sharedModels.CommentResponse, 0)
@@ -342,14 +349,14 @@ func getComments(input []*sharedModels.CommentRequest) []*sharedModels.CommentRe
 }
 
 // Get comment count from CommentsService
-func getCommentCount(input []*sharedModels.CommentCountRequest) []*sharedModels.CommentCountResponse {
+func getCommentCount(cnf config.Config, input []*sharedModels.CommentCountRequest) []*sharedModels.CommentCountResponse {
 	type Req struct {
 		Requests []*sharedModels.CommentCountRequest `json:"requests"`
 	}
 	body, _ := json.Marshal(Req{Requests: input})
 
 	// Make url
-	url := config.LoadConfig().CommentServiceBaseurl + "ipc/getCount"
+	url := cnf.CommentServiceBaseurl + "ipc/getCount"
 
 	// Return object
 	comments := make([]*sharedModels.CommentCountResponse, 0)
@@ -379,14 +386,14 @@ func getCommentCount(input []*sharedModels.CommentCountRequest) []*sharedModels.
 }
 
 // Get votes from the VotesSerivce
-func getVotes(input []*sharedModels.VoteCountRequest) []*sharedModels.VoteCountResponse {
+func getVotes(cnf config.Config, input []*sharedModels.VoteCountRequest) []*sharedModels.VoteCountResponse {
 	type Req struct {
 		Requests []*sharedModels.VoteCountRequest `json:"requests"`
 	}
 	body, _ := json.Marshal(&Req{Requests: input})
 
 	// Make url
-	url := config.LoadConfig().VoteServiceBaseurl + "ipc/count"
+	url := cnf.VoteServiceBaseurl + "ipc/count"
 
 	//Return object
 	votes := make([]*sharedModels.VoteCountResponse, 0)
@@ -415,14 +422,14 @@ func getVotes(input []*sharedModels.VoteCountRequest) []*sharedModels.VoteCountR
 }
 
 // Determine if the user has voted on a photo. VotesService
-func voted(input []*sharedModels.HasVotedRequest) []*sharedModels.HasVotedResponse {
+func voted(cnf config.Config, input []*sharedModels.HasVotedRequest) []*sharedModels.HasVotedResponse {
 	type Req struct {
 		Requests []*sharedModels.HasVotedRequest `json:"requests"`
 	}
 	body, _ := json.Marshal(&Req{Requests: input})
 
 	// Make url
-	url := config.LoadConfig().VoteServiceBaseurl + "ipc/voted"
+	url := cnf.VoteServiceBaseurl + "ipc/voted"
 
 	//Return object
 	hasVoted := make([]*sharedModels.HasVotedResponse, 0)
@@ -462,7 +469,7 @@ func timeHelper(v string) time.Time {
 	return t
 }
 
-func getUserIDFromRequest(req *http.Request) (int, error) {
+func getUserIDFromRequest(cnf config.Config, req *http.Request) (int, error) {
 	var queryToken = req.URL.Query().Get("token")
 
 	if len(queryToken) < 1 {
@@ -474,7 +481,7 @@ func getUserIDFromRequest(req *http.Request) (int, error) {
 	}
 
 	tok, err := jwt.Parse(queryToken, func(t *jwt.Token) (interface{}, error) {
-		return []byte(config.LoadConfig().SecretKey), nil
+		return []byte(cnf.SecretKey), nil
 	})
 	if err != nil {
 		return 0, err

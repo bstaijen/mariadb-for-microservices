@@ -9,7 +9,6 @@ import (
 
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
-	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 )
 
 type MariaDB struct {
@@ -34,7 +33,7 @@ func OpenConnection() (*sql.DB, error) {
 	port := cnf.DBPort
 	database := cnf.Database
 
-	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", username, password, host, port, database)
+	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true", username, password, host, port, database)
 
 	log.Debugf("Connect to : %v\n", dsn)
 	db, err := sql.Open("mysql", dsn)
@@ -55,59 +54,42 @@ func CloseConnection(db *sql.DB) {
 	db.Close()
 }
 
-func (mariaDB MariaDB) InsertPhoto(photo *models.CreatePhoto) error {
-
-	db, err := OpenConnection()
-	if err != nil {
-		return err
-	}
-	defer CloseConnection(db)
-
+func InsertPhoto(db *sql.DB, photo *models.CreatePhoto) error {
 	//Insert
-	stmt, err := db.Prepare("INSERT INTO photos(user_id, filename, title, contentType, photo) VALUES(?,?,?,?,?)")
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(photo.UserID, photo.Filename, photo.Title, photo.ContentType, photo.Image)
+	_, err := db.Exec("INSERT INTO photos(user_id, filename, title, contentType, photo) VALUES(?,?,?,?,?)", photo.UserID, photo.Filename, photo.Title, photo.ContentType, photo.Image)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (mariaDB MariaDB) ListImagesByUserID(id int) ([]*models.Photo, error) {
-	return selectQuery(fmt.Sprintf("SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos WHERE user_id=%v", id))
+func ListImagesByUserID(db *sql.DB, id int) ([]*models.Photo, error) {
+	return selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos WHERE user_id=?", id)
 }
 
-func (mariaDB MariaDB) ListIncoming(offset int, nrOfRows int) ([]*models.Photo, error) {
-	return selectQuery(fmt.Sprintf("SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos ORDER BY createdAt DESC LIMIT %v, %v", offset, nrOfRows))
+func ListIncoming(db *sql.DB, offset int, nrOfRows int) ([]*models.Photo, error) {
+	return selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos ORDER BY createdAt DESC LIMIT ?, ?", offset, nrOfRows)
 }
 
-func (mariaDB MariaDB) GetPhotoByFilename(filename string) (*models.Photo, error) {
-	photos, err := selectQuery(fmt.Sprintf("SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos WHERE filename = '%v'", filename))
+func GetPhotoByFilename(db *sql.DB, filename string) (*models.Photo, error) {
+	photos, err := selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos WHERE filename = ?", filename)
 	if len(photos) > 0 {
 		return photos[0], err
 	}
 	return nil, err
 }
 
-func (mariaDB MariaDB) GetPhotoById(id int) (*models.Photo, error) {
-	photos, err := selectQuery(fmt.Sprintf("SELECT id, user_id, filename, title, createdAt, contentType, photo  FROM photos WHERE id = %v", id))
+func GetPhotoById(db *sql.DB, id int) (*models.Photo, error) {
+	photos, err := selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo  FROM photos WHERE id = ?", id)
 	if len(photos) > 0 {
 		return photos[0], err
 	}
 	return nil, nil
 }
 
-func selectQuery(query string) ([]*models.Photo, error) {
-
-	db, err := OpenConnection()
-	if err != nil {
-		return nil, err
-	}
-	defer CloseConnection(db)
-
-	rows, err := db.Query(query)
+// A parameter type prefixed with three dots (...) is called a variadic parameter.
+func selectQuery(db *sql.DB, query string, args ...interface{}) ([]*models.Photo, error) {
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -116,14 +98,10 @@ func selectQuery(query string) ([]*models.Photo, error) {
 	for rows.Next() {
 		photoObject := &models.Photo{}
 
-		var createdAt string
-
-		err = rows.Scan(&photoObject.ID, &photoObject.UserID, &photoObject.Filename, &photoObject.Title, &createdAt, &photoObject.ContentType, &photoObject.Image)
+		err = rows.Scan(&photoObject.ID, &photoObject.UserID, &photoObject.Filename, &photoObject.Title, &photoObject.CreatedAt, &photoObject.ContentType, &photoObject.Image)
 		if err != nil {
 			return nil, err
 		}
-
-		photoObject.CreatedAt = util.TimeHelper(createdAt)
 
 		photos = append(photos, photoObject)
 	}

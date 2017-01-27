@@ -17,7 +17,7 @@ RUN go get github.com/meatballhat/negroni-logrus
 # 
 ADD . /go/src/mariadb.com/photo-service/
 WORKDIR /go/src/mariadb.com/photo-service
-RUN go build app/main.go
+RUN go build main.go
 
 # Expose port 5002 to the host so we can access our application
 EXPOSE 5002

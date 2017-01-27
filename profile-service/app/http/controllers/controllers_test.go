@@ -84,7 +84,6 @@ func TestCreateUser(t *testing.T) {
 	err = decodeJSON(res.Body, responseUser)
 	if err != nil {
 		t.Fatal(errors.New("Bad json"))
-		return
 	}
 	if responseUser.ID < 1 {
 		t.Errorf("Expected user ID greater than 0 but got %v", responseUser.ID)

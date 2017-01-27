@@ -17,7 +17,7 @@ RUN go get github.com/meatballhat/negroni-logrus
 # 
 ADD . /go/src/mariadb.com/comment-service/
 WORKDIR /go/src/mariadb.com/comment-service
-RUN go build app/main.go
+RUN go build main.go
 
 # Expose port 5004 to the host so we can access our application
 EXPOSE 5004

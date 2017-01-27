@@ -1,20 +1,23 @@
 package routes
 
 import (
+	"database/sql"
+
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/app/http/controllers"
+	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util/middleware"
 
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
 
-func InitRoutes() *mux.Router {
+func InitRoutes(db *sql.DB, cnf config.Config) *mux.Router {
 	router := mux.NewRouter()
-	router = SetRoutes(router)
+	router = SetRoutes(db, cnf, router)
 	return router
 }
 
-func SetRoutes(router *mux.Router) *mux.Router {
+func SetRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Router {
 
 	// Subroutr /image
 	image := router.PathPrefix("/image").Subrouter()
@@ -27,7 +30,7 @@ func SetRoutes(router *mux.Router) *mux.Router {
 	// Add image for user /image/{id}
 	image.Handle("/{id}", negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(controllers.CreateHandler),
+		controllers.CreateHandler(db),
 	)).Methods("POST")
 
 	image.Handle("/{id}", negroni.New(
@@ -37,25 +40,25 @@ func SetRoutes(router *mux.Router) *mux.Router {
 	// Image for user /image/{id}/list
 	image.Handle("/{id}/list", negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(controllers.ListByUserIDHandler),
+		controllers.ListByUserIDHandler(db),
 	)).Methods("GET")
 
 	// Incoming Timeline /image/list
 	image.Handle("/list", negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(controllers.IncomingHandler),
+		controllers.IncomingHandler(db, cnf),
 	)).Methods("GET")
 
 	// Top Rated Timeline /image/toprated
 	image.Handle("/toprated", negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(controllers.TopRatedHandler),
+		controllers.TopRatedHandler(db, cnf),
 	)).Methods("GET")
 
 	// Hot Timeline /image/hot
 	image.Handle("/hot", negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(controllers.HotHandler),
+		controllers.HotHandler(db, cnf),
 	)).Methods("GET")
 
 	// Subrouter /images/{file}
@@ -64,7 +67,7 @@ func SetRoutes(router *mux.Router) *mux.Router {
 	// Retrieve single image /images/{file}
 	images.Methods("GET").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		negroni.HandlerFunc(controllers.IndexHandler),
+		controllers.IndexHandler(db),
 	))
 
 	return router
