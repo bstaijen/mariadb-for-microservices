@@ -29,8 +29,7 @@ func main() {
 	// Get database
 	connection, err := db.OpenConnection()
 	if err != nil {
-		log.Infoln("Error when open connection to database.")
-		log.Error(err)
+		log.Fatal(err)
 	}
 	defer db.CloseConnection(connection)
 
