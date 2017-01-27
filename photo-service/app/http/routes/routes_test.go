@@ -156,7 +156,7 @@ func TestGetTimeline(t *testing.T) {
 
 	timeNow := time.Now().UTC()
 	selectByIDRows := sqlmock.NewRows([]string{"id", "user_id", "filename", "title", "createdAt", "contentType", "photo"}).AddRow(1, photo.UserID, photo.Filename, photo.Title, timeNow, photo.ContentType, photo.Image)
-	mock.ExpectQuery("SELECT (.+) FROM photos").WithArgs(1, 10).WillReturnRows(selectByIDRows)
+	mock.ExpectQuery("SELECT (.+) FROM photos").WithArgs(0, 10).WillReturnRows(selectByIDRows)
 
 	cnf := config.Config{}
 
@@ -189,7 +189,7 @@ func TestGetRopratedTimeline(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		t.Log(r.URL.String())
-		if r.URL.String() == "/ipc/toprated?offset=1&rows=10" {
+		if r.URL.String() == "/ipc/toprated?offset=0&rows=10" {
 			photos := make([]*sharedModels.TopRatedPhotoResponse, 0)
 			photos = append(photos, &sharedModels.TopRatedPhotoResponse{
 				PhotoID: 1,
@@ -257,7 +257,7 @@ func TestGetHotTimeline(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		t.Log(r.URL.String())
-		if r.URL.String() == "/ipc/hot?offset=1&rows=10" {
+		if r.URL.String() == "/ipc/hot?offset=0&rows=10" {
 			photos := make([]*sharedModels.TopRatedPhotoResponse, 0)
 			photos = append(photos, &sharedModels.TopRatedPhotoResponse{
 				PhotoID: 1,

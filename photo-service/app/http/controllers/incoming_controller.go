@@ -32,6 +32,9 @@ func IncomingHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc 
 		offset, rows := helper.PaginationFromRequest(r)
 
 		photos, err := db.ListIncoming(connection, offset, rows)
+
+		logrus.Infof("Number of photos retrieved from database : %v.", len(photos))
+
 		if err != nil {
 			util.SendError(w, err)
 			return

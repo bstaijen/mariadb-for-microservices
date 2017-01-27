@@ -15,15 +15,15 @@ func TestPaginationFromRequest(t *testing.T) {
 
 	// Test cases with disered output
 	var tests = []testpair{
-		{"http://localhost/", 1, 10},
+		{"http://localhost/", 0, 10},
 		{"http://localhost/?offset=3", 3, 10},
 		{"http://localhost/?offset=5&rows=4", 5, 4},
-		{"http://localhost/?offset=abc&rows=12", 1, 12},
-		{"http://localhost/?offset=-1", 1, 10},
-		{"http://localhost/?rows=3", 1, 3},
+		{"http://localhost/?offset=abc&rows=12", 0, 12},
+		{"http://localhost/?offset=-1", 0, 10},
+		{"http://localhost/?rows=3", 0, 3},
 		{"http://localhost/?offset=4&rows=abc", 4, 10},
-		{"http://localhost/?rows=-1", 1, 10},
-		{"", 1, 10},
+		{"http://localhost/?rows=-1", 0, 10},
+		{"", 0, 10},
 	}
 
 	// Run all tests
@@ -37,10 +37,10 @@ func TestPaginationFromRequest(t *testing.T) {
 		actualOffset, actualRows := PaginationFromRequest(req)
 
 		if actualOffset != test.expectedOffset {
-			t.Errorf("Expected %v but got %v", test.expectedOffset, actualOffset)
+			t.Errorf("Expected offset %v but got %v", test.expectedOffset, actualOffset)
 		}
 		if actualRows != test.expectedRows {
-			t.Errorf("Expected %v but got %v", test.expectedRows, actualRows)
+			t.Errorf("Expected rows %v but got %v", test.expectedRows, actualRows)
 		}
 	}
 

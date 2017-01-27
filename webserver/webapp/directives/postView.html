@@ -39,7 +39,7 @@
                 </tr>
                 </tbody>
             </table>
-            <div ng-hide="lastCommentsLoaded" class="text-center"><div class="btn btn-info" ng-click="loadComments()">Load more comments</div></div>
+            <div ng-show="hasMoreComments" class="text-center"><div class="btn btn-info" ng-click="loadComments()">Load more comments</div></div>
         </div>
     </div>
 

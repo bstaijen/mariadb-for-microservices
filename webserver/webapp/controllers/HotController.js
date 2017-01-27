@@ -7,7 +7,7 @@ app.controller('HotController', function ($scope, ApiService) {
     function getPhotos() {
         var page = $scope.page;
         var itemsPerPage = 10;
-        var offset = (page - 1) * itemsPerPage + 1;
+        var offset = (page - 1) * itemsPerPage;
 
         ApiService.hot(offset, itemsPerPage).then(
             function (result) {
@@ -28,5 +28,4 @@ app.controller('HotController', function ($scope, ApiService) {
         $scope.page = $scope.page + 1;
         getPhotos();
     }
-
 });

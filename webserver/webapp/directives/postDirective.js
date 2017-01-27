@@ -8,37 +8,37 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal) {
         controller: function ($scope) {
 
 
-            $scope.lastCommentsLoaded = true;
+            $scope.hasMoreComments = true;
             $scope.showMessages = false;
-            $scope.page = 0;
+            $scope.page = 1;
 
-            if ($scope.photo.comments.length == 10) {
-                $scope.lastCommentsLoaded = false;
-                // set page to 1
-                $scope.page = 1;
-            }
+            /*if ($scope.photo.comments.length == 10) {
+             $scope.lastCommentsLoaded = false;
+             // set page to 1
+             $scope.page = 1;
+             }*/
 
             $scope.loadComments = function () {
 
                 // make click listener.
                 // increase page ++1
                 $scope.page = $scope.page + 1;
+                getComments();
+
+            };
+            getComments();
+            function getComments() {
 
                 var page = $scope.page;
                 var itemsPerPage = 10;
-                var offset = (page - 1) * itemsPerPage + 1;
+                var offset = (page - 1) * itemsPerPage;
 
                 // get comments request.
                 ApiService.getComments($scope.photo.id, offset, 10).then(
                     function (response) {
                         console.info(response);
 
-                        //  : if loaded comments are size of 10 then lastCommentsLoaded stays false, else true
-                        if (response.length == 10) {
-                            $scope.lastCommentsLoaded = false;
-                        } else {
-                            $scope.lastCommentsLoaded = true;
-                        }
+                        $scope.hasMoreComments = (response.length == itemsPerPage);
 
                         $scope.photo.comments = $.merge($scope.photo.comments, response);
                     }, function (error) {
@@ -46,8 +46,7 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal) {
                     }
                 );
 
-
-            };
+            }
 
             $scope.toggleMessages = function () {
                 var usr = LocalStorage.getUser();

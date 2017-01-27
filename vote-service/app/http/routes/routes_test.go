@@ -85,7 +85,7 @@ func TestIPCGetTopRated(t *testing.T) {
 
 	// Database expectations
 	selectByIDRows := sqlmock.NewRows([]string{"photo_id", "total_upvote", "total_downvote", "difference"}).AddRow(1, 4, 5, 1).AddRow(2, 8, 3, 5)
-	mock.ExpectQuery("SELECT (.+) FROM votes").WithArgs(1, 10).WillReturnRows(selectByIDRows)
+	mock.ExpectQuery("SELECT (.+) FROM votes").WithArgs(0, 10).WillReturnRows(selectByIDRows)
 
 	// Mock config
 	cnf := config.Config{}
@@ -116,7 +116,7 @@ func TestIPCGetHot(t *testing.T) {
 
 	// Database expectations
 	selectByIDRows := sqlmock.NewRows([]string{"photo_id", "total_upvote", "total_downvote", "difference"}).AddRow(1, 4, 5, 1).AddRow(2, 8, 3, 5)
-	mock.ExpectQuery("SELECT (.+) FROM votes").WithArgs(1, 10).WillReturnRows(selectByIDRows)
+	mock.ExpectQuery("SELECT (.+) FROM votes").WithArgs(0, 10).WillReturnRows(selectByIDRows)
 
 	// Mock config
 	cnf := config.Config{}

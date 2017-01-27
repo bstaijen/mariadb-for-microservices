@@ -7,7 +7,7 @@ app.controller('HomeController', function ($scope, ApiService) {
     function getPhotos() {
         var page = $scope.page;
         var itemsPerPage = 10;
-        var offset = (page - 1) * itemsPerPage + 1;
+        var offset = (page - 1) * itemsPerPage;
 
         ApiService.incoming(offset, itemsPerPage).then(
             function (result) {

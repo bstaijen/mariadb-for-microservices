@@ -20,13 +20,13 @@ func PaginationFromRequest(r *http.Request) (int, int) {
 	if len(offsetString) > 0 {
 		offset, err = strconv.Atoi(offsetString)
 		if err != nil {
-			offset = 1
+			offset = 0
 			logrus.Warnf("offset (%v) is not a number", offsetString)
 		}
 	}
 	// Prevent negative offset number
-	if offset < 1 {
-		offset = 1
+	if offset < 0 {
+		offset = 0
 	}
 
 	// rows
