@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/prometheus/common/log"
 	"github.com/urfave/negroni"
 )
 
