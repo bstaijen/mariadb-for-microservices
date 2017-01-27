@@ -1,6 +1,4 @@
-[![Build Status](https://img.shields.io/travis/bstaijen/mariadb-for-microservices.svg?style=flat-square)][travis]
-[travis]: https://travis-ci.org/bstaijen/mariadb-for-microservices
-
+[![Build Status](https://travis-ci.org/bstaijen/mariadb-for-microservices.svg?branch=master)](https://travis-ci.org/bstaijen/mariadb-for-microservices)
 Work in progress..
 
 # MariaDB for Microservices
