@@ -4,8 +4,8 @@ import (
 	"database/sql"
 
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/app/http/controllers"
-	"github.com/bstaijen/mariadb-for-microservices/profile-service/app/http/middleware"
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/config"
+	"github.com/bstaijen/mariadb-for-microservices/shared/util/middleware"
 
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
@@ -26,20 +26,20 @@ func setRESTRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Route
 
 	// TODO :  https://github.com/gorilla/handlers/blob/master/cors.go#L140
 	users.Methods("OPTIONS").Handler(negroni.New(
-		negroni.HandlerFunc(middleware.AcceptOPTIONSHandler),
+		negroni.HandlerFunc(middleware.AcceptOPTIONS),
 	))
 
 	// Update user /users
 	users.Methods("PUT").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		middleware.RequireTokenAuthenticationHandler(cnf),
+		middleware.RequireTokenAuthenticationHandler(cnf.SecretKey),
 		controllers.UpdateUserHandler(db, cnf),
 	))
 
 	// Delete User /users
 	users.Methods("DELETE").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		middleware.RequireTokenAuthenticationHandler(cnf),
+		middleware.RequireTokenAuthenticationHandler(cnf.SecretKey),
 		controllers.DeleteUserHandler(db, cnf),
 	))
 
@@ -53,7 +53,7 @@ func setRESTRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Route
 	oneUser := router.PathPrefix("/user/{id}").Subrouter()
 	oneUser.Methods("GET").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		middleware.RequireTokenAuthenticationHandler(cnf),
+		middleware.RequireTokenAuthenticationHandler(cnf.SecretKey),
 		controllers.UserByIndexHandler(db),
 	))
 

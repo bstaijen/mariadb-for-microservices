@@ -129,7 +129,7 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
             return post(url, {username: username, password: password, email: email});
         },
         upload: function (user_id, file, title) {
-            var url = composePhotoUrl('/image/' + user_id + "?title=" + title);
+            var url = composePhotoUrl('/image/' + user_id + "?title=" + title + '&token=' + LocalStorage.getToken());
             return Upload.upload({
                 url: url,
                 data: {file: file}

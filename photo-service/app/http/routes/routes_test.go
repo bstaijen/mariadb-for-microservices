@@ -18,6 +18,7 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 type TestFilename struct{}
@@ -73,7 +74,9 @@ func TestPostImage(t *testing.T) {
 	mock.ExpectExec("INSERT INTO photos").WithArgs(photo.UserID, TestFilename{}, photo.Title, photo.ContentType, photo.Image).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	cnf := config.Config{}
-	res := doPostRequest(db, cnf, ts.URL+"/image/1?title=TestTitle", bytes.NewBuffer(photo.Image), t)
+	cnf.SecretKey = "ABCDEF"
+	token := getTokenString(cnf, photo.UserID, t)
+	res := doPostRequest(db, cnf, ts.URL+"/image/1?title=TestTitle&token="+token, bytes.NewBuffer(photo.Image), t)
 
 	t.Log(res.Body.String())
 
@@ -356,4 +359,22 @@ func doPostRequest(db *sql.DB, cnf config.Config, url string, body *bytes.Buffer
 	// return response
 	r.ServeHTTP(res, req)
 	return res
+}
+
+func getTokenString(cnf config.Config, userID int, t *testing.T) string {
+	expiration := time.Now().Add(time.Hour * 24 * 31).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": userID,
+		"iat": time.Now().Unix(),
+		"exp": expiration,
+	})
+
+	// Generate a signed token
+	secretKey := cnf.SecretKey
+	tokenString, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		t.Error(err)
+		return ""
+	}
+	return tokenString
 }
