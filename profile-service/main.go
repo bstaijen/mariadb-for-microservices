@@ -27,7 +27,7 @@ func main() {
 	cnf := config.LoadConfig()
 
 	// Get database
-	connection, err := db.OpenConnection()
+	connection, err := db.OpenConnection(cnf)
 	if err != nil {
 		log.Fatal(err)
 	}

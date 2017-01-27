@@ -12,10 +12,7 @@ import (
 )
 
 // OpenConnection opens the connection to the database
-func OpenConnection() (*sql.DB, error) {
-
-	cnf := config.LoadConfig()
-
+func OpenConnection(cnf config.Config) (*sql.DB, error) {
 	username := cnf.DBUsername
 	password := cnf.DBPassword
 	host := cnf.DBHost

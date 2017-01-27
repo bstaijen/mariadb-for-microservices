@@ -13,10 +13,7 @@ import (
 )
 
 // OpenConnection method
-func OpenConnection() (*sql.DB, error) {
-
-	cnf := config.LoadConfig()
-
+func OpenConnection(cnf config.Config) (*sql.DB, error) {
 	username := cnf.DBUsername
 	password := cnf.DBPassword
 	host := cnf.DBHost
@@ -25,7 +22,7 @@ func OpenConnection() (*sql.DB, error) {
 
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true", username, password, host, port, database)
 
-	log.Debug("Connect to : %v\n", dsn)
+	log.Debugf("Connect to : %v", dsn)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, ErrCanNotConnectWithDatabase

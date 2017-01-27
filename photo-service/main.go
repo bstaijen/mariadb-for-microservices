@@ -25,7 +25,7 @@ func main() {
 	cnf := config.LoadConfig()
 
 	// Get database // TODO : wait for the DB to go online for max 1 min?
-	connection, err := db.OpenConnection()
+	connection, err := db.OpenConnection(cnf)
 	if err != nil {
 		log.Fatal(err)
 	}
