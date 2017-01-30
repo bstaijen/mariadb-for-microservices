@@ -74,12 +74,6 @@ func LoginHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	})
 }
 
-func RefreshTokenHandler(connection *sql.DB) negroni.HandlerFunc {
-	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		util.SendErrorMessage(w, "Not implemented!")
-	})
-}
-
 // authenticate user by checking username and password in database
 func authenticate(connection *sql.DB, username string, password string) (*models.User, error) {
 	databaseUser, _ := db.GetUserByUsername(connection, username)

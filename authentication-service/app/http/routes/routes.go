@@ -34,11 +34,5 @@ func setAuthenticationRoutes(db *sql.DB, cnf config.Config, router *mux.Router) 
 		negroni.HandlerFunc(middleware.AcceptOPTIONS),
 	))
 
-	// User Refresh token. GET /refresh-token-auth
-	router.Handle("/refresh-token-auth",
-		negroni.New(
-			negroni.HandlerFunc(middleware.AccessControlHandler),
-			controllers.RefreshTokenHandler(db),
-		)).Methods("GET")
 	return router
 }

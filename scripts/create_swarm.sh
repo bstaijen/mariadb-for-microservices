@@ -1,9 +1,9 @@
 #!/bin/bash
-
 set -e
 
 # Docker Swarm Setup
-# Create machine
+
+# Create consul
 docker-machine create \
     --driver virtualbox \
     --virtualbox-memory 512 consul
@@ -14,7 +14,7 @@ docker run --restart=always -d \
     -p "8500:8500" \
     -h "consul" progrium/consul -server -bootstrap
 
-# Create master
+# Create master node
 docker-machine create \
     --driver virtualbox \
     --virtualbox-memory 512 \
@@ -23,8 +23,8 @@ docker-machine create \
     --engine-opt="cluster-store=consul://$(docker-machine ip consul):8500" \
     --engine-opt="cluster-advertise=eth1:2376" master
 
-# Create 5 
-for N in 0 1 2 3 4 5; do 
+# Create 4 nodes
+for N in 0 1 2 3; do 
     docker-machine create \
         --driver virtualbox \
         --virtualbox-memory 512 \
