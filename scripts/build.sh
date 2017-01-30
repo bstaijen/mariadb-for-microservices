@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -e
+
 docker build -t webserver ../webserver
 docker build -t authenticationsvc ../authentication-service
 docker build -t photosvc ../photo-service

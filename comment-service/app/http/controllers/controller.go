@@ -90,6 +90,26 @@ func ListCommentsHandler(connection *sql.DB, cnf config.Config) negroni.HandlerF
 			return
 		}
 
+		// include usernames
+		identifiers := make([]*sharedModels.GetUsernamesRequest, 0)
+		for index := 0; index < len(comments); index++ {
+			comment := comments[index]
+			identifiers = append(identifiers, &sharedModels.GetUsernamesRequest{
+				ID: comment.UserID,
+			})
+		}
+		usernames := getUsernames(cnf, identifiers)
+		for index := 0; index < len(comments); index++ {
+			comment := comments[index]
+			for undex := 0; undex < len(usernames); undex++ {
+				username := usernames[undex]
+
+				if comment.UserID == username.ID {
+					comment.Username = username.Username
+				}
+			}
+		}
+
 		// return
 		util.SendOK(w, comments)
 	})

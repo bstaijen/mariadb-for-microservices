@@ -15,6 +15,7 @@ app.controller('HomeController', function ($scope, ApiService) {
 
                 $scope.hasMorePictures = (result.length == itemsPerPage);
 
+
                 $scope.photos = $.merge($scope.photos, result);
 
             }, function (error) {

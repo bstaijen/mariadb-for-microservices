@@ -8,15 +8,8 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal) {
         controller: function ($scope) {
 
 
-            $scope.hasMoreComments = true;
             $scope.showMessages = false;
             $scope.page = 1;
-
-            /*if ($scope.photo.comments.length == 10) {
-             $scope.lastCommentsLoaded = false;
-             // set page to 1
-             $scope.page = 1;
-             }*/
 
             $scope.loadComments = function () {
 
@@ -26,7 +19,7 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal) {
                 getComments();
 
             };
-            getComments();
+
             function getComments() {
 
                 var page = $scope.page;
@@ -38,7 +31,6 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal) {
                     function (response) {
                         console.info(response);
 
-                        $scope.hasMoreComments = (response.length == itemsPerPage);
 
                         $scope.photo.comments = $.merge($scope.photo.comments, response);
                     }, function (error) {
