@@ -33,8 +33,8 @@ services:
         - "PORT=5001"
         - "DB_USERNAME=profile_service"
         - "DB_PASSWORD=password"
-        - "DB_HOST=maxscale"
-        - "DB_PORT=3308"
+        - "DB_HOST=db"
+        - "DB_PORT=3306"
         - "DB=ProfileService"
         - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=authenticationsvc"
@@ -54,8 +54,8 @@ services:
         - "PROFILE_SERVICE_URL=http://profile:5000/"
         - "DB_USERNAME=photo_service"
         - "DB_PASSWORD=password"
-        - "DB_HOST=maxscale"
-        - "DB_PORT=3308"
+        - "DB_HOST=db"
+        - "DB_PORT=3306"
         - "DB=PhotoService"
         - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=photosvc"
@@ -72,8 +72,8 @@ services:
         - "PORT=5003"
         - "DB_USERNAME=vote_service"
         - "DB_PASSWORD=password"
-        - "DB_HOST=maxscale"
-        - "DB_PORT=3308"
+        - "DB_HOST=db"
+        - "DB_PORT=3306"
         - "DB=VoteService"
         - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=votesvc"
@@ -91,8 +91,8 @@ services:
         - "PROFILE_SERVICE_URL=http://profile:5000/"
         - "DB_USERNAME=comment_service"
         - "DB_PASSWORD=password"
-        - "DB_HOST=maxscale"
-        - "DB_PORT=3308"
+        - "DB_HOST=db"
+        - "DB_PORT=3306"
         - "DB=CommentService"
         - "affinity:com.mariadb.host!=commentsvc"
         labels:
@@ -108,15 +108,15 @@ services:
         - "PORT=5000"
         - "DB_USERNAME=profile_service"
         - "DB_PASSWORD=password"
-        - "DB_HOST=maxscale"
-        - "DB_PORT=3308"
+        - "DB_HOST=db"
+        - "DB_PORT=3306"
         - "DB=ProfileService"
         - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=profilesvc"
         labels:
         - "com.mariadb.host=profilesvc"
     db:
-        image: bstaijen/mariadb-microservice-database:latest
+        image: bstaijen/mariadb-microservice-database:0.2
         depends_on: 
             - registrator
         restart: always
