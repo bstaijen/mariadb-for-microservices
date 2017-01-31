@@ -9,9 +9,8 @@ install:
   - go get github.com/gorilla/mux
   - go get github.com/dgrijalva/jwt-go
   - go get github.com/urfave/negroni
-  - go get github.com/buger/jsonparser
   - go get github.com/joho/godotenv
-  - go get github.com/sirupsen/logrus
+  - go get github.com/Sirupsen/logrus
   - go get github.com/meatballhat/negroni-logrus
   - go get gopkg.in/DATA-DOG/go-sqlmock.v1
 

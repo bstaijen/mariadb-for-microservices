@@ -9,9 +9,8 @@ RUN go get github.com/urfave/negroni
 RUN go get github.com/bstaijen/mariadb-for-microservices/shared/util
 RUN go get github.com/bstaijen/mariadb-for-microservices/shared/models
 RUN go get github.com/bstaijen/mariadb-for-microservices/shared/helper
-RUN go get github.com/buger/jsonparser
 RUN go get github.com/joho/godotenv
-RUN go get github.com/sirupsen/logrus
+RUN go get github.com/Sirupsen/logrus
 RUN go get github.com/meatballhat/negroni-logrus
 
 # 

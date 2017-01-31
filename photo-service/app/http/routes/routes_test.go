@@ -179,7 +179,8 @@ func TestGetTimeline(t *testing.T) {
 	}
 }
 
-func TestGetRopratedTimeline(t *testing.T) {
+func TestGetTopratedTimeline(t *testing.T) {
+
 	// /toprated
 	photo := &models.CreatePhoto{}
 	photo.ContentType = "image/png"

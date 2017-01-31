@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/config"
-	"github.com/buger/jsonparser"
 
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
@@ -266,15 +266,17 @@ func TestGetLastTenHandler(t *testing.T) {
 		t.Errorf(res.Body.String())
 	}
 
-	// Compare results
-	objects := make([]*sharedModels.CommentResponse, 0)
-	jsonparser.ArrayEach([]byte(res.Body.String()), func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-		comment := &sharedModels.CommentResponse{}
-		json.Unmarshal(value, comment)
-		objects = append(objects, comment)
-	}, "comments")
+	type Collection struct {
+		Objects []*sharedModels.CommentResponse `json:"comments"`
+	}
+	col := &Collection{}
+	col.Objects = make([]*sharedModels.CommentResponse, 0)
+	err = util.ResponseRecorderJSONToObject(res, &col)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	returnComment := objects[0]
+	returnComment := col.Objects[0]
 	expectedID := 1
 	actualID := returnComment.ID
 	if expectedID != actualID {

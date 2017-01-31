@@ -4,14 +4,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/config"
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/database"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
-	"github.com/buger/jsonparser"
-	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 
 	"strconv"
@@ -122,17 +122,18 @@ func GetCommentCountHandler(connection *sql.DB, cnf config.Config) negroni.Handl
 			util.SendErrorMessage(w, "bad json")
 			return
 		}
-		data, _ := ioutil.ReadAll(r.Body)
-		defer r.Body.Close()
 
-		objects := make([]*sharedModels.CommentCountRequest, 0)
-		jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-			comment := &sharedModels.CommentCountRequest{}
-			json.Unmarshal(value, comment)
-			objects = append(objects, comment)
-		}, "requests")
+		type Collection struct {
+			Objects []*sharedModels.CommentCountRequest `json:"requests"`
+		}
+		col := &Collection{}
+		col.Objects = make([]*sharedModels.CommentCountRequest, 0)
+		err := util.RequestToJSON(r, &col)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		responses, err := db.GetCommentCount(connection, objects)
+		responses, err := db.GetCommentCount(connection, col.Objects)
 
 		if err != nil {
 			util.SendError(w, err)
@@ -148,17 +149,19 @@ func GetCommentCountHandler(connection *sql.DB, cnf config.Config) negroni.Handl
 
 func GetLastTenHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		data, _ := ioutil.ReadAll(r.Body)
-		defer r.Body.Close()
 
-		objects := make([]*sharedModels.CommentRequest, 0)
-		jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-			comment := &sharedModels.CommentRequest{}
-			json.Unmarshal(value, comment)
-			objects = append(objects, comment)
-		}, "requests")
+		type Collection struct {
+			Objects []*sharedModels.CommentRequest `json:"requests"`
+		}
+		col := &Collection{}
+		col.Objects = make([]*sharedModels.CommentRequest, 0)
+		err := util.RequestToJSON(r, &col)
+		if err != nil {
+			util.SendError(w, err)
+			return
+		}
 
-		responses, err := db.GetLastTenComments(connection, objects)
+		responses, err := db.GetLastTenComments(connection, col.Objects)
 		if err != nil {
 			util.SendError(w, err)
 			return
@@ -212,14 +215,18 @@ func getUsernames(cnf config.Config, input []*sharedModels.GetUsernamesRequest) 
 			return
 		}
 
-		data, err := ioutil.ReadAll(res.Body)
-		if err == nil {
-			jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-				username := &sharedModels.GetUsernamesResponse{}
-				json.Unmarshal(value, username)
-				usernames = append(usernames, username)
-			}, "usernames")
+		type Collection struct {
+			Objects []*sharedModels.GetUsernamesResponse `json:"usernames"`
 		}
+		col := &Collection{}
+		col.Objects = make([]*sharedModels.GetUsernamesResponse, 0)
+
+		err := util.ResponseJSONToObject(res, &col)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		usernames = col.Objects
 	})
 	return usernames
 }
