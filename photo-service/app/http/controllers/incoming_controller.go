@@ -40,6 +40,13 @@ func IncomingHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc 
 			return
 		}
 		photos = findResources(cnf, photos, userID, true, true, true)
+
+		for _, v := range photos {
+			for _, s := range v.Comments {
+				logrus.Infof("test %v", s.Comment)
+			}
+		}
+
 		util.SendOK(w, photos)
 	})
 }
@@ -189,6 +196,10 @@ func findResources(cnf config.Config, photos []*models.Photo, userID int, commen
 
 // appendComments triggers `GET comments request` (last 10 comments for each photo) and appends results to []Photo
 func appendComments(cnf config.Config, photoCommentsIdentifiers []*sharedModels.CommentRequest, photos []*models.Photo) []*models.Photo {
+	for _, v := range photoCommentsIdentifiers {
+		logrus.Infof("photoCommentsIdentifiers %v", v)
+	}
+
 	comments := getComments(cnf, photoCommentsIdentifiers)
 	for ind := 0; ind < len(photos); ind++ {
 
@@ -205,6 +216,9 @@ func appendComments(cnf config.Config, photoCommentsIdentifiers []*sharedModels.
 			}
 		}
 	}
+	for _, v := range photos {
+		logrus.Infof("photoCommentsIdentifiers %v", v.ID)
+	}
 	return photos
 }
 
@@ -219,6 +233,9 @@ func appendCommentCount(cnf config.Config, photoCommentCountIdentifiers []*share
 				phot.CommentCount = countObject.Count
 			}
 		}
+	}
+	for _, v := range photos {
+		logrus.Infof("photoCommentsIdentifiers2 %v", v.ID)
 	}
 	return photos
 }

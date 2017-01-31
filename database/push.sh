@@ -1,1 +1,0 @@
-docker push bstaijen/mariadb-microservice-database:latest
