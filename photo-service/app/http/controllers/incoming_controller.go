@@ -13,6 +13,8 @@ import (
 
 	"io/ioutil"
 
+	"strings"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
 	"github.com/bstaijen/mariadb-for-microservices/shared/helper"
@@ -41,12 +43,6 @@ func IncomingHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc 
 		}
 		photos = findResources(cnf, photos, userID, true, true, true)
 
-		for _, v := range photos {
-			for _, s := range v.Comments {
-				logrus.Infof("test %v", s.Comment)
-			}
-		}
-
 		util.SendOK(w, photos)
 	})
 }
@@ -68,19 +64,44 @@ func TopRatedHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc 
 		photos := make([]*models.Photo, 0)
 
 		// GET
-		util.Request("GET", url, []byte(string("")), func(res *http.Response) {
-			data, err := ioutil.ReadAll(res.Body)
-			if err == nil {
-				jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-					obj := &sharedModels.TopRatedPhotoResponse{}
-					json.Unmarshal(value, obj)
-					photo, err := db.GetPhotoById(connection, obj.PhotoID)
-					if photo != nil {
-						photos = append(photos, photo)
+		if strings.HasPrefix(url, "http") {
+			err := util.Request("GET", url, []byte(string("")), func(res *http.Response) {
+
+				// Error handling
+				if res.StatusCode < 200 || res.StatusCode > 299 {
+					printResponseError(res)
+					util.SendErrorMessage(w, "Could not retrieve top rated photos.")
+					return
+				}
+
+				data, err := ioutil.ReadAll(res.Body)
+				logrus.Infof("ipc/toprated: %v", string(data))
+
+				if err == nil && len(data) > 0 {
+					_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+
+						obj := &sharedModels.TopRatedPhotoResponse{}
+						json.Unmarshal(value, obj)
+						photo, err := db.GetPhotoById(connection, obj.PhotoID)
+						if photo != nil {
+							photos = append(photos, photo)
+						}
+					}, "results")
+					if err != nil {
+						util.SendError(w, err)
+						return
 					}
-				}, "results")
+				} else {
+					logrus.Infof("No results for call to : %v", url)
+				}
+			})
+			if err != nil {
+				util.SendError(w, err)
+				return
 			}
-		})
+		} else {
+			logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
+		}
 
 		photos = findResources(cnf, photos, userID, true, true, true)
 		util.SendOK(w, photos)
@@ -103,29 +124,39 @@ func HotHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 		photos := make([]*models.Photo, 0)
 
 		// GET
-		util.Request("GET", url, []byte(string("")), func(res *http.Response) {
-			// Error handling
-			if res.StatusCode < 200 || res.StatusCode > 299 {
-				logrus.Errorf("ERROR with code %v.", res.Status)
-				data, _ := ioutil.ReadAll(res.Body)
-				logrus.Error(string(data))
+		if strings.HasPrefix(url, "http") {
+			err := util.Request("GET", url, []byte(string("")), func(res *http.Response) {
+				// Error handling
+				if res.StatusCode < 200 || res.StatusCode > 299 {
+					printResponseError(res)
+					util.SendErrorMessage(w, "Could not retrieve photos.")
+					return
+				}
 
-				util.SendErrorMessage(w, "Could not retrieve photos.")
-				return
+				// Happy path
+				data, err := ioutil.ReadAll(res.Body)
+				logrus.Infof("/ipc/hot: %v", string(data))
+				if err == nil && len(data) > 0 {
+					_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+						obj := &sharedModels.TopRatedPhotoResponse{}
+						json.Unmarshal(value, obj)
+						photo, err := db.GetPhotoById(connection, obj.PhotoID)
+						photos = append(photos, photo)
+					}, "results")
+					if err != nil {
+						util.SendError(w, err)
+						return
+					}
+				} else {
+					logrus.Infof("No results for call to : %v", url)
+				}
+			})
+			if err != nil {
+				util.SendError(w, err)
 			}
-
-			// Happy path
-			data, err := ioutil.ReadAll(res.Body)
-			if err == nil {
-				jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-					obj := &sharedModels.TopRatedPhotoResponse{}
-					json.Unmarshal(value, obj)
-					photo, err := db.GetPhotoById(connection, obj.PhotoID)
-					photos = append(photos, photo)
-				}, "results")
-			}
-		})
-
+		} else {
+			logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
+		}
 		photos = findResources(cnf, photos, userID, true, true, true)
 		util.SendOK(w, photos)
 	})
@@ -188,7 +219,7 @@ func findResources(cnf config.Config, photos []*models.Photo, userID int, commen
 		if userID > 0 {
 			photos = appendUserVoted(cnf, photoVotedIdentifiers, photos)
 		} else {
-			fmt.Printf("Warning: UserID is to small for voting. User ID : %v\n", userID)
+			logrus.Infof("UserID is to small for voting. User ID : %v\n", userID)
 		}
 	}
 	return photos
@@ -196,10 +227,6 @@ func findResources(cnf config.Config, photos []*models.Photo, userID int, commen
 
 // appendComments triggers `GET comments request` (last 10 comments for each photo) and appends results to []Photo
 func appendComments(cnf config.Config, photoCommentsIdentifiers []*sharedModels.CommentRequest, photos []*models.Photo) []*models.Photo {
-	for _, v := range photoCommentsIdentifiers {
-		logrus.Infof("photoCommentsIdentifiers %v", v)
-	}
-
 	comments := getComments(cnf, photoCommentsIdentifiers)
 	for ind := 0; ind < len(photos); ind++ {
 
@@ -216,9 +243,6 @@ func appendComments(cnf config.Config, photoCommentsIdentifiers []*sharedModels.
 			}
 		}
 	}
-	for _, v := range photos {
-		logrus.Infof("photoCommentsIdentifiers %v", v.ID)
-	}
 	return photos
 }
 
@@ -233,9 +257,6 @@ func appendCommentCount(cnf config.Config, photoCommentCountIdentifiers []*share
 				phot.CommentCount = countObject.Count
 			}
 		}
-	}
-	for _, v := range photos {
-		logrus.Infof("photoCommentsIdentifiers2 %v", v.ID)
 	}
 	return photos
 }
@@ -307,26 +328,37 @@ func getUsername(cnf config.Config, input []*sharedModels.GetUsernamesRequest) [
 	usernames := make([]*sharedModels.GetUsernamesResponse, 0)
 
 	// GET data and append to return object
-	util.Request("GET", url, body, func(res *http.Response) {
-		// Error handling
-		if res.StatusCode < 200 || res.StatusCode > 299 {
-			logrus.Errorf("ERROR with code %v.", res.Status)
-			data, _ := ioutil.ReadAll(res.Body)
-			logrus.Error(string(data))
-			return
-		}
+	if strings.HasPrefix(url, "http") {
+		err := util.Request("GET", url, body, func(res *http.Response) {
+			// Error handling
+			if res.StatusCode < 200 || res.StatusCode > 299 {
+				printResponseError(res)
+				return
+			}
 
-		// Happy path
-		data, err := ioutil.ReadAll(res.Body)
-		defer res.Body.Close()
-		if err == nil {
-			jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-				username := &sharedModels.GetUsernamesResponse{}
-				json.Unmarshal(value, username)
-				usernames = append(usernames, username)
-			}, "usernames")
+			// Happy path
+			data, err := ioutil.ReadAll(res.Body)
+			logrus.Infof("/ipc/usernames: %v", string(data))
+			defer res.Body.Close()
+			if err == nil && len(data) > 0 {
+				_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+					username := &sharedModels.GetUsernamesResponse{}
+					json.Unmarshal(value, username)
+					usernames = append(usernames, username)
+				}, "usernames")
+				if err != nil {
+					logrus.Fatal(err)
+				}
+			} else {
+				logrus.Infof("No results for call to : %v", url)
+			}
+		})
+		if err != nil {
+			logrus.Fatal(err)
 		}
-	})
+	} else {
+		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
+	}
 	return usernames
 }
 
@@ -344,26 +376,41 @@ func getComments(cnf config.Config, input []*sharedModels.CommentRequest) []*sha
 	comments := make([]*sharedModels.CommentResponse, 0)
 
 	// GET data and append to return object
-	util.Request("GET", url, body, func(res *http.Response) {
-		// Error handling
-		if res.StatusCode < 200 || res.StatusCode > 299 {
-			logrus.Errorf("ERROR with code %v.", res.Status)
-			data, _ := ioutil.ReadAll(res.Body)
-			logrus.Error(string(data))
-			return
-		}
 
-		// Happy path
-		data, err := ioutil.ReadAll(res.Body)
-		defer res.Body.Close()
-		if err == nil {
-			jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-				comment := &sharedModels.CommentResponse{}
-				json.Unmarshal(value, comment)
-				comments = append(comments, comment)
-			}, "comments")
+	if strings.HasPrefix(url, "http") {
+		err := util.Request("GET", url, body, func(res *http.Response) {
+			// Error handling
+			if res.StatusCode < 200 || res.StatusCode > 299 {
+				printResponseError(res)
+				return
+			}
+
+			// Happy path
+			data, err := ioutil.ReadAll(res.Body)
+			logrus.Infof("/ipc/getLast10: %v", string(data))
+			defer res.Body.Close()
+			if err == nil && len(data) > 0 {
+				_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+
+					logrus.Infof("getComments: length : %v", len(value))
+
+					comment := &sharedModels.CommentResponse{}
+					json.Unmarshal(value, comment)
+					comments = append(comments, comment)
+				}, "comments")
+				if err != nil {
+					logrus.Fatal(err)
+				}
+			} else {
+				logrus.Infof("No results for call to : %v", url)
+			}
+		})
+		if err != nil {
+			logrus.Fatal(err)
 		}
-	})
+	} else {
+		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
+	}
 	return comments
 }
 
@@ -381,26 +428,37 @@ func getCommentCount(cnf config.Config, input []*sharedModels.CommentCountReques
 	comments := make([]*sharedModels.CommentCountResponse, 0)
 
 	// GET data and append to return object
-	util.Request("GET", url, body, func(res *http.Response) {
-		// Error handling
-		if res.StatusCode < 200 || res.StatusCode > 299 {
-			logrus.Errorf("ERROR with code %v.", res.Status)
-			data, _ := ioutil.ReadAll(res.Body)
-			logrus.Error(string(data))
-			return
-		}
+	if strings.HasPrefix(url, "http") {
+		err := util.Request("GET", url, body, func(res *http.Response) {
+			// Error handling
+			if res.StatusCode < 200 || res.StatusCode > 299 {
+				printResponseError(res)
+				return
+			}
 
-		// Happy path
-		data, err := ioutil.ReadAll(res.Body)
-		defer res.Body.Close()
-		if err == nil {
-			jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-				comment := &sharedModels.CommentCountResponse{}
-				json.Unmarshal(value, comment)
-				comments = append(comments, comment)
-			}, "result")
+			// Happy path
+			data, err := ioutil.ReadAll(res.Body)
+			logrus.Infof("/ipc/getCount: %v", string(data))
+			defer res.Body.Close()
+			if err == nil && len(data) > 0 {
+				_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+					comment := &sharedModels.CommentCountResponse{}
+					json.Unmarshal(value, comment)
+					comments = append(comments, comment)
+				}, "result")
+				if err != nil {
+					logrus.Fatal(err)
+				}
+			} else {
+				logrus.Infof("No results for call to : %v", url)
+			}
+		})
+		if err != nil {
+			logrus.Fatal(err)
 		}
-	})
+	} else {
+		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
+	}
 	return comments
 }
 
@@ -416,27 +474,37 @@ func getVotes(cnf config.Config, input []*sharedModels.VoteCountRequest) []*shar
 
 	//Return object
 	votes := make([]*sharedModels.VoteCountResponse, 0)
+	if strings.HasPrefix(url, "http") {
+		err := util.Request("GET", url, body, func(res *http.Response) {
+			// Error handling
+			if res.StatusCode < 200 || res.StatusCode > 299 {
+				printResponseError(res)
+				return
+			}
 
-	util.Request("GET", url, body, func(res *http.Response) {
-		// Error handling
-		if res.StatusCode < 200 || res.StatusCode > 299 {
-			logrus.Errorf("ERROR with code %v.", res.Status)
-			data, _ := ioutil.ReadAll(res.Body)
-			logrus.Error(string(data))
-			return
+			// Happy path
+			data, err := ioutil.ReadAll(res.Body)
+			logrus.Infof("/ipc/count: %v", string(data))
+			defer res.Body.Close()
+			if err == nil && len(data) > 0 {
+				_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+					vote := &sharedModels.VoteCountResponse{}
+					json.Unmarshal(value, vote)
+					votes = append(votes, vote)
+				}, "results")
+				if err != nil {
+					logrus.Fatal(err)
+				}
+			} else {
+				logrus.Infof("No results for call to : %v", url)
+			}
+		})
+		if err != nil {
+			logrus.Fatal(err)
 		}
-
-		// Happy path
-		data, err := ioutil.ReadAll(res.Body)
-		defer res.Body.Close()
-		if err == nil {
-			jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-				vote := &sharedModels.VoteCountResponse{}
-				json.Unmarshal(value, vote)
-				votes = append(votes, vote)
-			}, "results")
-		}
-	})
+	} else {
+		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
+	}
 	return votes
 }
 
@@ -452,27 +520,37 @@ func voted(cnf config.Config, input []*sharedModels.HasVotedRequest) []*sharedMo
 
 	//Return object
 	hasVoted := make([]*sharedModels.HasVotedResponse, 0)
+	if strings.HasPrefix(url, "http") {
+		err := util.Request("GET", url, body, func(res *http.Response) {
+			// Error handling
+			if res.StatusCode < 200 || res.StatusCode > 299 {
+				printResponseError(res)
+				return
+			}
 
-	util.Request("GET", url, body, func(res *http.Response) {
-		// Error handling
-		if res.StatusCode < 200 || res.StatusCode > 299 {
-			logrus.Errorf("ERROR with code %v.", res.Status)
-			data, _ := ioutil.ReadAll(res.Body)
-			logrus.Error(string(data))
-			return
+			// Happy path
+			data, err := ioutil.ReadAll(res.Body)
+			logrus.Infof("/ipc/voted: %v", string(data))
+			defer res.Body.Close()
+			if err == nil && len(data) > 0 {
+				_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+					vote := &sharedModels.HasVotedResponse{}
+					json.Unmarshal(value, vote)
+					hasVoted = append(hasVoted, vote)
+				}, "results")
+				if err != nil {
+					logrus.Fatal(err)
+				}
+			} else {
+				logrus.Infof("No results for call to : %v", url)
+			}
+		})
+		if err != nil {
+			logrus.Fatal(err)
 		}
-
-		// Happy path
-		data, err := ioutil.ReadAll(res.Body)
-		defer res.Body.Close()
-		if err == nil {
-			jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-				vote := &sharedModels.HasVotedResponse{}
-				json.Unmarshal(value, vote)
-				hasVoted = append(hasVoted, vote)
-			}, "results")
-		}
-	})
+	} else {
+		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
+	}
 	return hasVoted
 }
 
@@ -498,4 +576,10 @@ func getUserIDFromRequest(cnf config.Config, req *http.Request) (int, error) {
 	var ID = claims["sub"].(float64) // gets the ID
 
 	return int(ID), nil
+}
+
+func printResponseError(res *http.Response) {
+	logrus.Errorf("Response error with statuscode %v.", res.Status)
+	data, _ := ioutil.ReadAll(res.Body)
+	logrus.Error(string(data))
 }

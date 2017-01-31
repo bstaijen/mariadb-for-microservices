@@ -75,9 +75,6 @@ func GetPhotoById(db *sql.DB, id int) (*models.Photo, error) {
 
 // A parameter type prefixed with three dots (...) is called a variadic parameter.
 func selectQuery(db *sql.DB, query string, args ...interface{}) ([]*models.Photo, error) {
-
-	log.Infof(query, args)
-
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		return nil, err

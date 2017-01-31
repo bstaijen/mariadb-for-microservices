@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -59,7 +60,7 @@ func TestPostImage(t *testing.T) {
 	photo.UserID = 1
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
+		util.SendBadRequest(w, errors.New("Not implemented"))
 	}))
 	defer ts.Close()
 
@@ -103,7 +104,7 @@ func TestListImagesFromUser(t *testing.T) {
 	photo.UserID = 1
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
+		util.SendBadRequest(w, errors.New("Not implemented"))
 	}))
 	defer ts.Close()
 
@@ -146,7 +147,7 @@ func TestGetTimeline(t *testing.T) {
 	photo.UserID = 1
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
+		util.SendBadRequest(w, errors.New("Not implemented"))
 	}))
 	defer ts.Close()
 
@@ -202,14 +203,8 @@ func TestGetTopratedTimeline(t *testing.T) {
 				Results []*sharedModels.TopRatedPhotoResponse `json:"results"`
 			}
 			util.SendOK(w, &Resp{Results: photos})
-		} else if r.URL.String() == "/ipc/getLast10" {
-			// implement if you want to mock comments
-		} else if r.URL.String() == "/ipc/getCount" {
-			// implement if you want to mock comment count
-		} else if r.URL.String() == "/ipc/usernames" {
-			// implement if you want the users' username with a photo
-		} else if r.URL.String() == "/ipc/count" {
-			// implement if you want to mock vote count
+		} else {
+			util.SendBadRequest(w, errors.New("Not implemented"))
 		}
 	}))
 	defer ts.Close()
@@ -270,14 +265,8 @@ func TestGetHotTimeline(t *testing.T) {
 				Results []*sharedModels.TopRatedPhotoResponse `json:"results"`
 			}
 			util.SendOK(w, &Resp{Results: photos})
-		} else if r.URL.String() == "/ipc/getLast10" {
-			// implement if you want to mock comments
-		} else if r.URL.String() == "/ipc/getCount" {
-			// implement if you want to mock comment count
-		} else if r.URL.String() == "/ipc/usernames" {
-			// implement if you want the users' username with a photo
-		} else if r.URL.String() == "/ipc/count" {
-			// implement if you want to mock vote count
+		} else {
+			util.SendBadRequest(w, errors.New("Not implemented"))
 		}
 	}))
 	defer ts.Close()

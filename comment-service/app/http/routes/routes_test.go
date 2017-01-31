@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -42,6 +43,8 @@ func TestPostComment(t *testing.T) {
 				Usernames []*sharedModels.GetUsernamesResponse `json:"usernames"`
 			}
 			util.SendOK(w, &Resp{Usernames: users})
+		} else {
+			util.SendBadRequest(w, errors.New("Not implemented"))
 		}
 	}))
 	defer ts.Close()
@@ -101,6 +104,8 @@ func TestGetCommentsFromPhoto(t *testing.T) {
 				Usernames []*sharedModels.GetUsernamesResponse `json:"usernames"`
 			}
 			util.SendOK(w, &Resp{Usernames: users})
+		} else {
+			util.SendBadRequest(w, errors.New("Not implemented"))
 		}
 	}))
 	defer ts.Close()
@@ -153,6 +158,8 @@ func TestIPCGetLast10(t *testing.T) {
 				Usernames []*sharedModels.GetUsernamesResponse `json:"usernames"`
 			}
 			util.SendOK(w, &Resp{Usernames: users})
+		} else {
+			util.SendBadRequest(w, errors.New("Not implemented"))
 		}
 	}))
 	defer ts.Close()
@@ -248,6 +255,8 @@ func TestIPCGetCommentCount(t *testing.T) {
 				Usernames []*sharedModels.GetUsernamesResponse `json:"usernames"`
 			}
 			util.SendOK(w, &Resp{Usernames: users})
+		} else {
+			util.SendBadRequest(w, errors.New("Not implemented"))
 		}
 	}))
 	defer ts.Close()
