@@ -194,6 +194,7 @@ func GetUsernamesHandler(connection *sql.DB) negroni.HandlerFunc {
 		type Resp struct {
 			Usernames []*sharedModels.GetUsernamesResponse `json:"usernames"`
 		}
+		log.Printf("Nr of usernames returned %v.", len(users))
 		util.SendOK(w, &Resp{Usernames: users})
 	})
 }

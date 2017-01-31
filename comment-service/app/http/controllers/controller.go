@@ -11,6 +11,7 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/database"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 	"github.com/buger/jsonparser"
+	"github.com/prometheus/common/log"
 	"github.com/urfave/negroni"
 
 	"strconv"
@@ -203,6 +204,14 @@ func getUsernames(cnf config.Config, input []*sharedModels.GetUsernamesRequest) 
 
 	// GET data and append to return object
 	util.Request("GET", url, body, func(res *http.Response) {
+		// Error handling
+		if res.StatusCode < 200 || res.StatusCode > 299 {
+			log.Errorf("ERROR with code %v.", res.Status)
+			data, _ := ioutil.ReadAll(res.Body)
+			log.Error(string(data))
+			return
+		}
+
 		data, err := ioutil.ReadAll(res.Body)
 		if err == nil {
 			jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
