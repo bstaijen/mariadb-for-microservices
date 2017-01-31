@@ -6,7 +6,7 @@ app.controller("LoginController", function ($scope, $window, ApiService, LocalSt
         emptyMessages();
         ApiService.login($scope.username, $scope.password).then(
             function (data) {
-                //console.log(data);
+                console.log(data);
                 if (data && data.token) {
                     $scope.successMessages.push("Login successful");
 

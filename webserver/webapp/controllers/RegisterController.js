@@ -1,4 +1,4 @@
-app.controller('RegisterController', function ($scope, ApiService) {
+app.controller('RegisterController', function ($scope, $window, ApiService, LocalStorage) {
     $scope.errorMessages = [];
     $scope.successMessages = [];
 
@@ -7,11 +7,22 @@ app.controller('RegisterController', function ($scope, ApiService) {
 
         ApiService.register($scope.username, $scope.email, $scope.password).then(
             function (data) {
-
+                console.log(data);
                 $scope.successMessages.push("Registration successful");
                 emptyFields();
 
+                LocalStorage.setToken(data.token);
+
+                if (data.user) {
+                    //console.info(data.user);
+                    LocalStorage.setUser(data.user);
+                }
+
+
+                $window.location.href = '#/';
+
             }, function (response) {
+                console.log(response);
                 if (response && response.data) {
                     var data = response.data;
 

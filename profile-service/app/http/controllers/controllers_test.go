@@ -32,6 +32,8 @@ func (a TestHash) Match(v driver.Value) bool {
 
 // Test creating an user.
 func TestCreateUser(t *testing.T) {
+	cnf := config.Config{}
+	cnf.SecretKey = "ABCDEF"
 
 	user := &models.User{}
 	user.ID = 1
@@ -71,7 +73,7 @@ func TestCreateUser(t *testing.T) {
 	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "password", "email"}).AddRow(user.ID, user.Username, timeNow, "PasswordHashPlaceHolder", user.Email)
 	mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(user.ID).WillReturnRows(selectByIDRows)
 
-	handler := CreateUserHandler(db)
+	handler := CreateUserHandler(db, cnf)
 	handler(res, req, nil)
 
 	// Make sure expectations are met
@@ -80,20 +82,26 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	// Make sure response is alright
-	responseUser := &models.User{}
-	err = decodeJSON(res.Body, responseUser)
+	type Token struct {
+		Token     string      `json:"token"`
+		ExpiresOn string      `json:"expires_on"`
+		User      models.User `json:"user"`
+	}
+
+	response := &Token{}
+	err = decodeJSON(res.Body, response)
 	if err != nil {
 		t.Fatal(errors.New("Bad json"))
 	}
-	if responseUser.ID < 1 {
-		t.Errorf("Expected user ID greater than 0 but got %v", responseUser.ID)
+	if response.User.ID < 1 {
+		t.Errorf("Expected user ID greater than 0 but got %v", response.User.ID)
 	}
 
-	if responseUser.Username != user.Username {
-		t.Errorf("Expected username to be %v but got %v", user.Username, responseUser.Username)
+	if response.User.Username != user.Username {
+		t.Errorf("Expected username to be %v but got %v", user.Username, response.User.Username)
 	}
-	if responseUser.Email != user.Email {
-		t.Errorf("Expected username to be %v but got %v", user.Email, responseUser.Email)
+	if response.User.Email != user.Email {
+		t.Errorf("Expected username to be %v but got %v", user.Email, response.User.Email)
 	}
 
 	if res.Result().StatusCode != 200 {
@@ -103,6 +111,9 @@ func TestCreateUser(t *testing.T) {
 
 // Test creating an user when a bad json string is provided. We expect an error message.
 func TestBadJson(t *testing.T) {
+	cnf := config.Config{}
+	cnf.SecretKey = "ABCDEF"
+
 	db, _, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -115,7 +126,7 @@ func TestBadJson(t *testing.T) {
 	}
 
 	res := httptest.NewRecorder()
-	handler := CreateUserHandler(db)
+	handler := CreateUserHandler(db, cnf)
 	handler(res, req, nil)
 
 	actual := res.Body.String()
@@ -127,6 +138,9 @@ func TestBadJson(t *testing.T) {
 
 // Test creating a user without providing a username. We expect an error message.
 func TestCreateUserWithoutUsername(t *testing.T) {
+	cnf := config.Config{}
+	cnf.SecretKey = "ABCDEF"
+
 	user := &models.User{}
 
 	json, _ := json.Marshal(user)
@@ -144,7 +158,7 @@ func TestCreateUserWithoutUsername(t *testing.T) {
 	}
 	defer db.Close()
 
-	handler := CreateUserHandler(db)
+	handler := CreateUserHandler(db, cnf)
 	handler(res, req, nil)
 
 	actual := res.Body.String()
@@ -156,6 +170,9 @@ func TestCreateUserWithoutUsername(t *testing.T) {
 
 // Test creating an user without providing a password. We expect an error message.
 func TestCreateUserWithoutPassword(t *testing.T) {
+	cnf := config.Config{}
+	cnf.SecretKey = "ABCDEF"
+
 	user := &models.User{}
 	user.Email = "test@example.com"
 	user.Username = "username"
@@ -175,7 +192,7 @@ func TestCreateUserWithoutPassword(t *testing.T) {
 	}
 	defer db.Close()
 
-	handler := CreateUserHandler(db)
+	handler := CreateUserHandler(db, cnf)
 	handler(res, req, nil)
 
 	actual := res.Body.String()
@@ -187,6 +204,9 @@ func TestCreateUserWithoutPassword(t *testing.T) {
 
 // Test creating an user without providing an email address. We expect an error message.
 func TestCreateUserWithoutEmail(t *testing.T) {
+	cnf := config.Config{}
+	cnf.SecretKey = "ABCDEF"
+
 	user := &models.User{}
 	user.Username = "username"
 
@@ -205,7 +225,7 @@ func TestCreateUserWithoutEmail(t *testing.T) {
 	}
 	defer db.Close()
 
-	handler := CreateUserHandler(db)
+	handler := CreateUserHandler(db, cnf)
 	handler(res, req, nil)
 
 	actual := res.Body.String()

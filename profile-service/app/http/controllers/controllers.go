@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"strconv"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -24,7 +25,7 @@ import (
 )
 
 // CreateUserHandler creates a new user in the database. Password is saved as a hash.
-func CreateUserHandler(connection *sql.DB) negroni.HandlerFunc {
+func CreateUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		user := &models.User{}
 		err := util.RequestToJSON(r, user)
@@ -46,7 +47,33 @@ func CreateUserHandler(connection *sql.DB) negroni.HandlerFunc {
 					return
 				}
 				createdUser, _ := db.GetUserByID(connection, createdID)
-				util.SendOK(w, createdUser)
+				// create JWT object with claims
+				expiration := time.Now().Add(time.Hour * 24 * 31).Unix()
+				token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+					"sub": createdUser.ID,
+					"iat": time.Now().Unix(),
+					"exp": expiration,
+				})
+
+				// Load secret key from config and generate a signed token
+				secretKey := cnf.SecretKey
+				tokenString, err := token.SignedString([]byte(secretKey))
+				if err != nil {
+					util.SendError(w, err)
+					return
+				}
+
+				type Token struct {
+					Token     string      `json:"token"`
+					ExpiresOn string      `json:"expires_on"`
+					User      models.User `json:"user"`
+				}
+
+				util.SendOK(w, &Token{
+					Token:     tokenString,
+					ExpiresOn: strconv.Itoa(int(expiration)),
+					User:      createdUser,
+				})
 
 			} else {
 				util.SendBadRequest(w, err)

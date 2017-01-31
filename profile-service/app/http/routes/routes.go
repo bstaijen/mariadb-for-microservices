@@ -46,7 +46,7 @@ func setRESTRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Route
 	// Create user /sers
 	users.Methods("POST").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		controllers.CreateUserHandler(db),
+		controllers.CreateUserHandler(db, cnf),
 	))
 
 	// Get one user /user/{id}

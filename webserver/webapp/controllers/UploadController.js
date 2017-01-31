@@ -19,6 +19,7 @@ app.controller('UploadController', function ($scope, $window, LocalStorage, ApiS
 
         ApiService.upload(user.id, $scope.file, $scope.title).then(
             function (resp) {
+                $scope.title = "";
                 $scope.file = null;
                 $scope.successMessage = "Image successfully uploaded.";
             }, function (resp) {
