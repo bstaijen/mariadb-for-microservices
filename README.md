@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/bstaijen/mariadb-for-microservices.svg?branch=master)](https://travis-ci.org/bstaijen/mariadb-for-microservices)
+[![Build Status](https://travis-ci.org/bstaijen/mariadb-for-microservices.svg?branch=master)](https://travis-ci.org/bstaijen/mariadb-for-microservices) [![Go Report Card](https://goreportcard.com/badge/github.com/bstaijen/mariadb-for-microservices)](https://goreportcard.com/report/github.com/bstaijen/mariadb-for-microservices)
 Work in progress..
 
 # MariaDB for Microservices
