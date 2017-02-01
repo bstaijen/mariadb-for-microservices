@@ -154,6 +154,10 @@ func UpdateUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 		tok, err := jwt.Parse(queryToken, func(t *jwt.Token) (interface{}, error) {
 			return []byte(secretKey), nil
 		})
+		if err != nil {
+			util.SendBadRequest(w, err)
+			return
+		}
 
 		claims := tok.Claims.(jwt.MapClaims)
 		var ID = claims["sub"].(float64) // gets the ID

@@ -32,7 +32,7 @@ func TestGetUserByID(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 
@@ -66,7 +66,7 @@ func TestCreateUser(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 
@@ -91,7 +91,7 @@ func TestUpdateUser(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 
@@ -116,7 +116,7 @@ func TestDeleteUser(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 
@@ -144,7 +144,7 @@ func TestGetUsers(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 
@@ -185,7 +185,7 @@ func TestGetUsernames(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 
@@ -258,7 +258,7 @@ func TestUniqueEmail(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 
@@ -294,7 +294,7 @@ func TestUniqueUsername(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 

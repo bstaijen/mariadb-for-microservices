@@ -33,7 +33,7 @@ func TestCreate(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 
@@ -65,7 +65,7 @@ func TestVoteCount(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 
@@ -98,7 +98,7 @@ func TestHasVoted(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 
@@ -128,7 +128,7 @@ func TestGetTopRatedTimeline(t *testing.T) {
 	}
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 
 }
@@ -157,6 +157,6 @@ func TestGetHotTimeline(t *testing.T) {
 	}
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }

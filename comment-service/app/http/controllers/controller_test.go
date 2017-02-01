@@ -77,7 +77,7 @@ func TestCreateHandler(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 	if res.Result().StatusCode != 200 {
 		t.Errorf("Expected statuscode to be 200 but got %v", res.Result().StatusCode)
@@ -138,7 +138,7 @@ func TestListCommentsHandler(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 	if res.Result().StatusCode != 200 {
 		t.Errorf("Expected statuscode to be 200 but got %v", res.Result().StatusCode)
@@ -194,7 +194,7 @@ func TestGetCommentCountHandler(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 	if res.Result().StatusCode != 200 {
 		t.Errorf("Expected statuscode to be 200 but got %v", res.Result().StatusCode)
@@ -258,7 +258,7 @@ func TestGetLastTenHandler(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 	if res.Result().StatusCode != 200 {
 		t.Errorf("Expected statuscode to be 200 but got %v", res.Result().StatusCode)

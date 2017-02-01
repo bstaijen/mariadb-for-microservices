@@ -83,6 +83,9 @@ func TopRatedHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc 
 						obj := &sharedModels.TopRatedPhotoResponse{}
 						json.Unmarshal(value, obj)
 						photo, err := db.GetPhotoById(connection, obj.PhotoID)
+						if err != nil {
+							logrus.Fatal(err)
+						}
 						if photo != nil {
 							photos = append(photos, photo)
 						}
@@ -141,6 +144,9 @@ func HotHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 						obj := &sharedModels.TopRatedPhotoResponse{}
 						json.Unmarshal(value, obj)
 						photo, err := db.GetPhotoById(connection, obj.PhotoID)
+						if err != nil {
+							logrus.Fatal(err)
+						}
 						photos = append(photos, photo)
 					}, "results")
 					if err != nil {

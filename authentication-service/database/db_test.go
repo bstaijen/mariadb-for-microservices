@@ -33,7 +33,7 @@ func TestGetUserByUsername(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 

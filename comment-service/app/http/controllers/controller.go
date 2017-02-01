@@ -81,14 +81,17 @@ func ListCommentsHandler(connection *sql.DB, cnf config.Config) negroni.HandlerF
 				return
 			}
 			comments, err = db.GetComments(connection, photoID, offset, rows)
+			if err != nil {
+				util.SendError(w, err)
+				return
+			}
 		} else {
 			// then list last 10
 			comments, err = db.GetComments(connection, photoID, 1, 10)
-		}
-
-		if err != nil {
-			util.SendError(w, err)
-			return
+			if err != nil {
+				util.SendError(w, err)
+				return
+			}
 		}
 
 		// include usernames

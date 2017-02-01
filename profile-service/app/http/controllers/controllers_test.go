@@ -78,7 +78,7 @@ func TestCreateUser(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 
 	// Make sure response is alright
@@ -239,7 +239,7 @@ func TestCreateUserWithoutEmail(t *testing.T) {
 func decodeJSON(r io.Reader, target interface{}) error {
 	err := json.NewDecoder(r).Decode(target)
 	if err != nil {
-		fmt.Printf("json decoder error occured: %v \n", err.Error())
+		fmt.Printf("json decoder error occurred: %v \n", err.Error())
 		return err
 	}
 	return nil
@@ -292,7 +292,7 @@ func TestDeleteUser(t *testing.T) {
 
 	// Make sure expectations are met
 	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 	if res.Result().StatusCode != 200 {
 		t.Errorf("Expected statuscode to be 200 but got %v", res.Result().StatusCode)

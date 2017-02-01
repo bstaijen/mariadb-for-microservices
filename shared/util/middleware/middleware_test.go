@@ -34,7 +34,7 @@ func TestAccessControlHandlerWithNext(t *testing.T) {
 	}
 	res := httptest.NewRecorder()
 
-	// Test if the code gets exectued when there's a next arguments passed
+	// Test if the code gets executed when there's a next arguments passed
 	AccessControlHandler(res, req, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("test", "value")
 	})

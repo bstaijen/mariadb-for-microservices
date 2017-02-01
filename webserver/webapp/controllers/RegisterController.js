@@ -31,7 +31,7 @@ app.controller('RegisterController', function ($scope, $window, ApiService, Loca
                         return;
                     }
                 }
-                $scope.errorMessages.push("An error occured. Please try again.");
+                $scope.errorMessages.push("An error occurred. Please try again.");
             }
         );
 

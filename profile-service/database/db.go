@@ -194,7 +194,7 @@ func GetUsernames(db *sql.DB, identifiers []*sharedModels.GetUsernamesRequest) (
 	return persons, nil
 }
 
-// Query builder for contructing an IN-condition
+// Query builder for constructing an IN-condition
 func inQueryBuilder(identifiers []*sharedModels.GetUsernamesRequest) string {
 	if len(identifiers) < 1 {
 		return ""

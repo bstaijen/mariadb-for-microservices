@@ -36,7 +36,7 @@ app.controller("LoginController", function ($scope, $window, ApiService, LocalSt
                         return;
                     }
                 }
-                $scope.errorMessages.push("An error occured. Please try again.");
+                $scope.errorMessages.push("An error occurred. Please try again.");
             }
         );
     }
