@@ -205,7 +205,7 @@ func TestQueryBuilder(t *testing.T) {
 	actual := inQueryBuilder(ids)
 	expected := ""
 	if expected != actual {
-		t.Errorf("we are expection '%s' instead we got '%s'", actual, expected)
+		t.Errorf("we are expecting '%s' instead we got '%s'", actual, expected)
 	}
 
 	ids = append(ids, &sharedModels.GetUsernamesRequest{
@@ -219,7 +219,7 @@ func TestQueryBuilder(t *testing.T) {
 	actual = inQueryBuilder(ids)
 	expected = "SELECT id, username FROM users WHERE id IN(1,2)"
 	if expected != actual {
-		t.Errorf("we are expection '%s' instead we got '%s'", actual, expected)
+		t.Errorf("we are expecting '%s' instead we got '%s'", actual, expected)
 	}
 }
 
@@ -250,10 +250,10 @@ func TestUniqueEmail(t *testing.T) {
 		expected := ErrEmailIsNotUnique.Error()
 		actual := err.Error()
 		if expected != actual {
-			t.Errorf("we are expection error '%s' instead we got '%s'", ErrEmailIsNotUnique, err)
+			t.Errorf("we are expecting error '%s' instead we got '%s'", ErrEmailIsNotUnique, err)
 		}
 	} else {
-		t.Errorf("we are expection error '%s' instead the code threw no error.", ErrEmailIsNotUnique)
+		t.Errorf("we are expecting error '%s' instead the code threw no error.", ErrEmailIsNotUnique)
 	}
 
 	// Make sure expectations are met
@@ -286,10 +286,10 @@ func TestUniqueUsername(t *testing.T) {
 		expected := ErrUsernameIsNotUnique.Error()
 		actual := err.Error()
 		if expected != actual {
-			t.Errorf("we are expection error '%s' instead we got '%s'", ErrUsernameIsNotUnique, err)
+			t.Errorf("we are expecting error '%s' instead we got '%s'", ErrUsernameIsNotUnique, err)
 		}
 	} else {
-		t.Errorf("we are expection error '%s' instead the code threw no error.", ErrUsernameIsNotUnique)
+		t.Errorf("we are expecting error '%s' instead the code threw no error.", ErrUsernameIsNotUnique)
 	}
 
 	// Make sure expectations are met
