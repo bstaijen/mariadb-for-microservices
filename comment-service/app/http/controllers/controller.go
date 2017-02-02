@@ -16,6 +16,7 @@ import (
 
 	"strconv"
 
+	"github.com/bstaijen/mariadb-for-microservices/shared/helper"
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 )
 
@@ -51,11 +52,8 @@ func CreateHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 
 func ListCommentsHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		// get query param offset
-		var offsetString = r.URL.Query().Get("offset")
 
-		// get query param nr_of_rows
-		var rowsString = r.URL.Query().Get("rows")
+		offset, rows := helper.PaginationFromRequest(r)
 
 		// get PhotoID
 		var photoIDString = r.URL.Query().Get("photoID")
@@ -67,31 +65,10 @@ func ListCommentsHandler(connection *sql.DB, cnf config.Config) negroni.HandlerF
 
 		comments := make([]*sharedModels.CommentResponse, 0)
 
-		// if not query params
-		if len(offsetString) > 0 && len(rowsString) > 0 {
-			// list the 10 past on start-lengths
-			offset, err := strconv.Atoi(offsetString)
-			if err != nil {
-				util.SendErrorMessage(w, "offset is not a number ["+offsetString+"]")
-				return
-			}
-			rows, err := strconv.Atoi(rowsString)
-			if err != nil {
-				util.SendErrorMessage(w, "rows is not a number ["+rowsString+"]")
-				return
-			}
-			comments, err = db.GetComments(connection, photoID, offset, rows)
-			if err != nil {
-				util.SendError(w, err)
-				return
-			}
-		} else {
-			// then list last 10
-			comments, err = db.GetComments(connection, photoID, 1, 10)
-			if err != nil {
-				util.SendError(w, err)
-				return
-			}
+		comments, err = db.GetComments(connection, photoID, offset, rows)
+		if err != nil {
+			util.SendError(w, err)
+			return
 		}
 
 		// include usernames

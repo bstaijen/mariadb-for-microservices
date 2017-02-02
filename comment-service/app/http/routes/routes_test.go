@@ -119,7 +119,7 @@ func TestGetCommentsFromPhoto(t *testing.T) {
 
 	timeNow := time.Now().UTC()
 	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "password", "email"}).AddRow(1, comment.UserID, comment.PhotoID, comment.Comment, timeNow)
-	mock.ExpectQuery("SELECT (.+) FROM comments WHERE").WithArgs(5, 1, 10).WillReturnRows(selectByIDRows)
+	mock.ExpectQuery("SELECT (.+) FROM comments WHERE").WithArgs(5, 0, 10).WillReturnRows(selectByIDRows)
 
 	cnf := config.Config{}
 	cnf.ProfileServiceBaseurl = ts.URL + "/"
