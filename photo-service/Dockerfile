@@ -12,7 +12,6 @@ RUN go get github.com/bstaijen/mariadb-for-microservices/shared/helper
 RUN go get github.com/joho/godotenv
 RUN go get github.com/Sirupsen/logrus
 RUN go get github.com/meatballhat/negroni-logrus
-RUN go get github.com/buger/jsonparser
 
 # 
 ADD . /go/src/mariadb.com/photo-service/

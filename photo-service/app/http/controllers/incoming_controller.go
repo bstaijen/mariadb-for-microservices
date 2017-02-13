@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/app/models"
@@ -20,7 +21,6 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/shared/helper"
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
-	"github.com/buger/jsonparser"
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
@@ -74,28 +74,24 @@ func TopRatedHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc 
 					return
 				}
 
-				data, err := ioutil.ReadAll(res.Body)
-				logrus.Infof("ipc/toprated: %v", string(data))
-
-				if err == nil && len(data) > 0 {
-					_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-
-						obj := &sharedModels.TopRatedPhotoResponse{}
-						json.Unmarshal(value, obj)
-						photo, err := db.GetPhotoById(connection, obj.PhotoID)
-						if err != nil {
-							logrus.Fatal(err)
-						}
-						if photo != nil {
-							photos = append(photos, photo)
-						}
-					}, "results")
+				// Happy path
+				type Collection struct {
+					Objects []*sharedModels.TopRatedPhotoResponse `json:"results"`
+				}
+				col := &Collection{}
+				col.Objects = make([]*sharedModels.TopRatedPhotoResponse, 0)
+				err := util.ResponseJSONToObject(res, &col)
+				if err != nil {
+					log.Fatal(err)
+				}
+				for _, v := range col.Objects {
+					photo, err := db.GetPhotoById(connection, v.PhotoID)
 					if err != nil {
-						util.SendError(w, err)
-						return
+						logrus.Fatal(err)
 					}
-				} else {
-					logrus.Infof("No results for call to : %v", url)
+					if photo != nil {
+						photos = append(photos, photo)
+					}
 				}
 			})
 			if err != nil {
@@ -137,24 +133,23 @@ func HotHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 				}
 
 				// Happy path
-				data, err := ioutil.ReadAll(res.Body)
-				logrus.Infof("/ipc/hot: %v", string(data))
-				if err == nil && len(data) > 0 {
-					_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-						obj := &sharedModels.TopRatedPhotoResponse{}
-						json.Unmarshal(value, obj)
-						photo, err := db.GetPhotoById(connection, obj.PhotoID)
-						if err != nil {
-							logrus.Fatal(err)
-						}
-						photos = append(photos, photo)
-					}, "results")
+				type Collection struct {
+					Objects []*sharedModels.TopRatedPhotoResponse `json:"results"`
+				}
+				col := &Collection{}
+				col.Objects = make([]*sharedModels.TopRatedPhotoResponse, 0)
+				err := util.ResponseJSONToObject(res, &col)
+				if err != nil {
+					log.Fatal(err)
+				}
+				for _, v := range col.Objects {
+					photo, err := db.GetPhotoById(connection, v.PhotoID)
 					if err != nil {
-						util.SendError(w, err)
-						return
+						logrus.Fatal(err)
 					}
-				} else {
-					logrus.Infof("No results for call to : %v", url)
+					if photo != nil {
+						photos = append(photos, photo)
+					}
 				}
 			})
 			if err != nil {
@@ -343,21 +338,16 @@ func getUsername(cnf config.Config, input []*sharedModels.GetUsernamesRequest) [
 			}
 
 			// Happy path
-			data, err := ioutil.ReadAll(res.Body)
-			logrus.Infof("/ipc/usernames: %v", string(data))
-			defer res.Body.Close()
-			if err == nil && len(data) > 0 {
-				_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-					username := &sharedModels.GetUsernamesResponse{}
-					json.Unmarshal(value, username)
-					usernames = append(usernames, username)
-				}, "usernames")
-				if err != nil {
-					logrus.Fatal(err)
-				}
-			} else {
-				logrus.Infof("No results for call to : %v", url)
+			type Collection struct {
+				Objects []*sharedModels.GetUsernamesResponse `json:"usernames"`
 			}
+			col := &Collection{}
+			col.Objects = make([]*sharedModels.GetUsernamesResponse, 0)
+			err := util.ResponseJSONToObject(res, &col)
+			if err != nil {
+				log.Fatal(err)
+			}
+			usernames = col.Objects
 		})
 		if err != nil {
 			logrus.Fatal(err)
@@ -392,24 +382,16 @@ func getComments(cnf config.Config, input []*sharedModels.CommentRequest) []*sha
 			}
 
 			// Happy path
-			data, err := ioutil.ReadAll(res.Body)
-			logrus.Infof("/ipc/getLast10: %v", string(data))
-			defer res.Body.Close()
-			if err == nil && len(data) > 0 {
-				_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-
-					logrus.Infof("getComments: length : %v", len(value))
-
-					comment := &sharedModels.CommentResponse{}
-					json.Unmarshal(value, comment)
-					comments = append(comments, comment)
-				}, "comments")
-				if err != nil {
-					logrus.Fatal(err)
-				}
-			} else {
-				logrus.Infof("No results for call to : %v", url)
+			type Collection struct {
+				Objects []*sharedModels.CommentResponse `json:"comments"`
 			}
+			col := &Collection{}
+			col.Objects = make([]*sharedModels.CommentResponse, 0)
+			err := util.ResponseJSONToObject(res, &col)
+			if err != nil {
+				log.Fatal(err)
+			}
+			comments = col.Objects
 		})
 		if err != nil {
 			logrus.Fatal(err)
@@ -443,21 +425,16 @@ func getCommentCount(cnf config.Config, input []*sharedModels.CommentCountReques
 			}
 
 			// Happy path
-			data, err := ioutil.ReadAll(res.Body)
-			logrus.Infof("/ipc/getCount: %v", string(data))
-			defer res.Body.Close()
-			if err == nil && len(data) > 0 {
-				_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-					comment := &sharedModels.CommentCountResponse{}
-					json.Unmarshal(value, comment)
-					comments = append(comments, comment)
-				}, "result")
-				if err != nil {
-					logrus.Fatal(err)
-				}
-			} else {
-				logrus.Infof("No results for call to : %v", url)
+			type Collection struct {
+				Objects []*sharedModels.CommentCountResponse `json:"result"`
 			}
+			col := &Collection{}
+			col.Objects = make([]*sharedModels.CommentCountResponse, 0)
+			err := util.ResponseJSONToObject(res, &col)
+			if err != nil {
+				log.Fatal(err)
+			}
+			comments = col.Objects
 		})
 		if err != nil {
 			logrus.Fatal(err)
@@ -489,21 +466,16 @@ func getVotes(cnf config.Config, input []*sharedModels.VoteCountRequest) []*shar
 			}
 
 			// Happy path
-			data, err := ioutil.ReadAll(res.Body)
-			logrus.Infof("/ipc/count: %v", string(data))
-			defer res.Body.Close()
-			if err == nil && len(data) > 0 {
-				_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-					vote := &sharedModels.VoteCountResponse{}
-					json.Unmarshal(value, vote)
-					votes = append(votes, vote)
-				}, "results")
-				if err != nil {
-					logrus.Fatal(err)
-				}
-			} else {
-				logrus.Infof("No results for call to : %v", url)
+			type Collection struct {
+				Objects []*sharedModels.VoteCountResponse `json:"results"`
 			}
+			col := &Collection{}
+			col.Objects = make([]*sharedModels.VoteCountResponse, 0)
+			err := util.ResponseJSONToObject(res, &col)
+			if err != nil {
+				log.Fatal(err)
+			}
+			votes = col.Objects
 		})
 		if err != nil {
 			logrus.Fatal(err)
@@ -535,21 +507,16 @@ func voted(cnf config.Config, input []*sharedModels.HasVotedRequest) []*sharedMo
 			}
 
 			// Happy path
-			data, err := ioutil.ReadAll(res.Body)
-			logrus.Infof("/ipc/voted: %v", string(data))
-			defer res.Body.Close()
-			if err == nil && len(data) > 0 {
-				_, err := jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-					vote := &sharedModels.HasVotedResponse{}
-					json.Unmarshal(value, vote)
-					hasVoted = append(hasVoted, vote)
-				}, "results")
-				if err != nil {
-					logrus.Fatal(err)
-				}
-			} else {
-				logrus.Infof("No results for call to : %v", url)
+			type Collection struct {
+				Objects []*sharedModels.HasVotedResponse `json:"results"`
 			}
+			col := &Collection{}
+			col.Objects = make([]*sharedModels.HasVotedResponse, 0)
+			err := util.ResponseJSONToObject(res, &col)
+			if err != nil {
+				log.Fatal(err)
+			}
+			hasVoted = col.Objects
 		})
 		if err != nil {
 			logrus.Fatal(err)

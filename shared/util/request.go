@@ -21,6 +21,7 @@ func Request(method, url string, body []byte, cb func(*http.Response)) error {
 	}
 
 	// callback
+	log.Printf("[info] %v %v %v", method, url, resp.StatusCode)
 	cb(resp)
 
 	//return

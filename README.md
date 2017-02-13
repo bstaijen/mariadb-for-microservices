@@ -24,3 +24,6 @@ Best way to execute this is to create a shell script.
 
 # Authors
 - Bjorge Staijen
+
+# Next steps
+Check out the [docs directory](docs) for more docs.

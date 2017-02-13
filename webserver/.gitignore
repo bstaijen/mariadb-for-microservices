@@ -1,5 +1,6 @@
 .idea/
 proxy/node_modules/
 webapp/bower_components
+webapp/node_modules/
 access.log
 proxy/.env

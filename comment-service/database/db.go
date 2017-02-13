@@ -119,8 +119,10 @@ func GetCommentCount(db *sql.DB, items []*sharedModels.CommentCountRequest) ([]*
 }
 
 func GetLastTenComments(db *sql.DB, items []*sharedModels.CommentRequest) ([]*sharedModels.CommentResponse, error) {
+	responses := make([]*sharedModels.CommentResponse, 0)
+
 	if len(items) < 1 {
-		return nil, nil
+		return responses, nil
 	}
 	// Query builder
 	query := ""
@@ -139,7 +141,6 @@ func GetLastTenComments(db *sql.DB, items []*sharedModels.CommentRequest) ([]*sh
 		return nil, err
 	}
 
-	responses := make([]*sharedModels.CommentResponse, 0)
 	for rows.Next() {
 		obj := &sharedModels.CommentResponse{}
 		rows.Scan(&obj.ID, &obj.UserID, &obj.PhotoID, &obj.Comment, &obj.CreatedAt)
