@@ -40,6 +40,7 @@ func CloseConnection(db *sql.DB) {
 	db.Close()
 }
 
+// Create a vote in the database
 func Create(db *sql.DB, vote *sharedModels.VoteCreateRequest) error {
 	_, err := db.Exec("DELETE FROM votes WHERE user_id=? AND photo_id=?", vote.UserID, vote.PhotoID)
 	if err != nil {
@@ -53,6 +54,7 @@ func Create(db *sql.DB, vote *sharedModels.VoteCreateRequest) error {
 	return nil
 }
 
+// VoteCount calculates how many votes each photos has.
 func VoteCount(db *sql.DB, items []*sharedModels.VoteCountRequest) ([]*sharedModels.VoteCountResponse, error) {
 	if len(items) < 1 {
 		return make([]*sharedModels.VoteCountResponse, 0), nil

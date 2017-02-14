@@ -10,10 +10,12 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/shared/models"
 )
 
+// SendOKMessage send http response with header OK and a message.
 func SendOKMessage(w http.ResponseWriter, message string) {
 	SendOK(w, &models.Error{Message: message})
 }
 
+// SendOK send http response with header OK and a body interface.
 func SendOK(w http.ResponseWriter, data interface{}) {
 	result, err := json.Marshal(data)
 	if err != nil {
@@ -25,10 +27,12 @@ func SendOK(w http.ResponseWriter, data interface{}) {
 	}
 }
 
+// SendErrorMessage send a http response an error message
 func SendErrorMessage(w http.ResponseWriter, message string) {
 	SendError(w, errors.New(message))
 }
 
+// SendError send a http response with status code 400 with the error parameter as error message.
 func SendError(w http.ResponseWriter, err error) {
 	debug.PrintStack()
 	SendBadRequest(w, err)
@@ -44,6 +48,7 @@ func SendBadRequest(w http.ResponseWriter, err error) {
 	w.Write([]byte(string(errJSON)))
 }
 
+// SendImage send a http response with a write a image to the client
 func SendImage(w http.ResponseWriter, filename string, contentType string, image []byte) {
 	w.Header().Set("Content-Disposition", "inline; filename="+filename)
 	w.Header().Set("Content-Type", contentType)

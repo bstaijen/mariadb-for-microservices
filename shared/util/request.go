@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// Request is a helper which executes a request over the network and returns an error or a response
 func Request(method, url string, body []byte, cb func(*http.Response)) error {
 
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))

@@ -13,6 +13,7 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 )
 
+// CreateHandler handler for creating a vote and storing it in the database.
 func CreateHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 

@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/negroni"
 )
 
+// AccessControlHandler set the Access-Control-Allow-Origin and calls next HandlerFunc
 func AccessControlHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if next != nil {
@@ -17,6 +18,7 @@ func AccessControlHandler(w http.ResponseWriter, r *http.Request, next http.Hand
 	}
 }
 
+// AcceptOPTIONS sets the Access-Control-Allow-Origin and Access-Control-Allow-Headers headers
 func AcceptOPTIONS(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")

@@ -24,13 +24,13 @@ func OpenConnection(cnf config.Config) (*sql.DB, error) {
 	log.Debugf("Connect to : %v", dsn)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, ErrCanNotConnectWithDatabase
+		return nil, errCanNotConnectWithDatabase
 	}
 
 	// Open doesn't open a connection. Validate DSN data:
 	err = db.Ping()
 	if err != nil {
-		return nil, ErrCanNotConnectWithDatabase
+		return nil, errCanNotConnectWithDatabase
 	}
 	return db, nil
 }
@@ -40,6 +40,7 @@ func CloseConnection(db *sql.DB) {
 	db.Close()
 }
 
+// InsertPhoto : inserts a photo in the database
 func InsertPhoto(db *sql.DB, photo *models.CreatePhoto) error {
 	//Insert
 	_, err := db.Exec("INSERT INTO photos(user_id, filename, title, contentType, photo) VALUES(?,?,?,?,?)", photo.UserID, photo.Filename, photo.Title, photo.ContentType, photo.Image)
@@ -49,14 +50,17 @@ func InsertPhoto(db *sql.DB, photo *models.CreatePhoto) error {
 	return nil
 }
 
+// ListImagesByUserID returns a list of photo's uploaded by the user.
 func ListImagesByUserID(db *sql.DB, id int) ([]*models.Photo, error) {
 	return selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos WHERE user_id=?", id)
 }
 
+// ListIncoming returns a list of photos ordered by last inserted
 func ListIncoming(db *sql.DB, offset int, nrOfRows int) ([]*models.Photo, error) {
 	return selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos ORDER BY createdAt DESC LIMIT ?, ?", offset, nrOfRows)
 }
 
+// GetPhotoByFilename return a photo based on the filename
 func GetPhotoByFilename(db *sql.DB, filename string) (*models.Photo, error) {
 	photos, err := selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos WHERE filename = ?", filename)
 	if len(photos) > 0 {
@@ -65,6 +69,7 @@ func GetPhotoByFilename(db *sql.DB, filename string) (*models.Photo, error) {
 	return nil, err
 }
 
+// GetPhotoById returns a photo indexed by id
 func GetPhotoById(db *sql.DB, id int) (*models.Photo, error) {
 	photos, err := selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo  FROM photos WHERE id = ?", id)
 	if len(photos) > 0 {
@@ -94,5 +99,5 @@ func selectQuery(db *sql.DB, query string, args ...interface{}) ([]*models.Photo
 	return photos, nil
 }
 
-// ErrCanNotConnectWithDatabase error if database is unreachable
-var ErrCanNotConnectWithDatabase = errors.New("Can not connect with database")
+// errCanNotConnectWithDatabase error if database is unreachable
+var errCanNotConnectWithDatabase = errors.New("Can not connect with database")

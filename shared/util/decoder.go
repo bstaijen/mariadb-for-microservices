@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 )
 
+// RequestToJSON converts a Request containg a json object to a targeted interface
 func RequestToJSON(req *http.Request, target interface{}) error {
 	if req.Body == nil {
 		return errors.New("Bad json")
@@ -16,6 +17,7 @@ func RequestToJSON(req *http.Request, target interface{}) error {
 	return toJSON(req.Body, target)
 }
 
+// ResponseJSONToObject converts a Response containing a json object to a targeted interface
 func ResponseJSONToObject(res *http.Response, target interface{}) error {
 	if res.Body == nil {
 		return errors.New("Bad json")
@@ -24,6 +26,7 @@ func ResponseJSONToObject(res *http.Response, target interface{}) error {
 	return toJSON(res.Body, target)
 }
 
+// ResponseRecorderJSONToObject converts a ResponseRecorder containing a json to a targeted interface. This is only used in test cases when a httptest server is used.
 func ResponseRecorderJSONToObject(res *httptest.ResponseRecorder, target interface{}) error {
 	if res.Body == nil {
 		return errors.New("Bad json")

@@ -41,6 +41,7 @@ func CloseConnection(db *sql.DB) {
 	db.Close()
 }
 
+// Create : saves a comment in the database
 func Create(db *sql.DB, comment *models.CommentCreate) (*sharedModels.CommentResponse, error) {
 	res, err := db.Exec("INSERT INTO comments(user_id, photo_id, comment) VALUES(?,?,?)", comment.UserID, comment.PhotoID, comment.Comment)
 	if err != nil {
@@ -59,6 +60,7 @@ func Create(db *sql.DB, comment *models.CommentCreate) (*sharedModels.CommentRes
 	return c, nil
 }
 
+// GetCommentByID returns a comment from the database
 func GetCommentByID(db *sql.DB, id int) (*sharedModels.CommentResponse, error) {
 	rows, err := db.Query("SELECT id, user_id, photo_id, comment, createdAt FROM comments WHERE id = ?", id)
 	if err != nil {
@@ -118,6 +120,7 @@ func GetCommentCount(db *sql.DB, items []*sharedModels.CommentCountRequest) ([]*
 	return responses, nil
 }
 
+// GetLastTenComments return the 10 comments for each comment in the [] parameter.
 func GetLastTenComments(db *sql.DB, items []*sharedModels.CommentRequest) ([]*sharedModels.CommentResponse, error) {
 	responses := make([]*sharedModels.CommentResponse, 0)
 

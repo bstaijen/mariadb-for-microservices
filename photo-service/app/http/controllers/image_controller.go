@@ -21,6 +21,7 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 )
 
+// CreateHandler create a photo object and store it in the database.
 func CreateHandler(connection *sql.DB) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		// Get title
@@ -73,6 +74,7 @@ func CreateHandler(connection *sql.DB) negroni.HandlerFunc {
 	})
 }
 
+// IndexHandler serves a photo indentiefied by filename
 func IndexHandler(connection *sql.DB) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		vars := mux.Vars(r)
@@ -88,6 +90,7 @@ func IndexHandler(connection *sql.DB) negroni.HandlerFunc {
 	})
 }
 
+// ListByUserIDHandler list all photos owned by an user.
 func ListByUserIDHandler(connection *sql.DB) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		vars := mux.Vars(r)

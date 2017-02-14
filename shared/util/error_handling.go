@@ -1,10 +1,13 @@
 package util
 
-import "fmt"
+import (
+	"log"
+)
 
+// PanicIfError panics when error is not nil
 func PanicIfError(err error) {
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		panic(err)
 	}
 }
