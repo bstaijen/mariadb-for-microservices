@@ -137,7 +137,7 @@ func HasVoted(db *sql.DB, items []*sharedModels.HasVotedRequest) ([]*sharedModel
 
 // GetTopRatedTimeline returns an array of top rated photos. The array contains a list of ID's. Offset and nrOfRows can be used for pagination.
 func GetTopRatedTimeline(db *sql.DB, offset int, nrOfRows int) ([]*sharedModels.TopRatedPhotoResponse, error) {
-	rows, err := db.Query("SELECT photo_id, sum(upvote) AS total_upvote, sum(downvote) AS total_downvote, sum(upvote) - sum(downvote) as difference FROM votes GROUP BY photo_id ORDER BY difference DESC LIMIT ?, ?", offset, nrOfRows)
+	rows, err := db.Query("SELECT photo_id as photoID, sum(upvote) AS totalUpvote, sum(downvote) AS totalDownvote, sum(upvote) - sum(downvote) as difference FROM votes GROUP BY photo_id ORDER BY difference DESC LIMIT ?, ?", offset, nrOfRows)
 	if err != nil {
 		return nil, err
 	}
@@ -145,24 +145,25 @@ func GetTopRatedTimeline(db *sql.DB, offset int, nrOfRows int) ([]*sharedModels.
 	photos := make([]*sharedModels.TopRatedPhotoResponse, 0)
 
 	for rows.Next() {
-		var photo_id int
-		var total_upvote int
-		var total_downvote int
+		var photoID int
+		var totalUpvote int
+		var totalDownvote int
 		var difference int
 
-		err = rows.Scan(&photo_id, &total_upvote, &total_downvote, &difference)
+		err = rows.Scan(&photoID, &totalUpvote, &totalDownvote, &difference)
 		if err != nil {
 			return nil, err
 		}
 		photos = append(photos, &sharedModels.TopRatedPhotoResponse{
-			PhotoID: photo_id,
+			PhotoID: photoID,
 		})
 	}
 	return photos, nil
 }
 
+// GetHotTimeline returns an array of photos ordered by on which is most 'hot' meaning which has been voted on the most for the CURRENT_DAY
 func GetHotTimeline(db *sql.DB, offset int, nrOfRows int) ([]*sharedModels.TopRatedPhotoResponse, error) {
-	rows, err := db.Query("SELECT photo_id, sum(upvote) AS total_upvote, sum(downvote) AS total_downvote, sum(upvote) - sum(downvote) AS difference FROM votes WHERE createdAt > DATE_SUB(now(), INTERVAL 1 DAY) GROUP BY photo_id ORDER BY difference DESC LIMIT ?, ?", offset, nrOfRows)
+	rows, err := db.Query("SELECT photo_id as photoID, sum(upvote) AS totalUpvote, sum(downvote) AS totalDownvote, sum(upvote) - sum(downvote) AS difference FROM votes WHERE createdAt > DATE_SUB(now(), INTERVAL 1 DAY) GROUP BY photo_id ORDER BY difference DESC LIMIT ?, ?", offset, nrOfRows)
 	if err != nil {
 		return nil, err
 	}
@@ -170,18 +171,18 @@ func GetHotTimeline(db *sql.DB, offset int, nrOfRows int) ([]*sharedModels.TopRa
 	photos := make([]*sharedModels.TopRatedPhotoResponse, 0)
 
 	for rows.Next() {
-		var photo_id int
-		var total_upvote int
-		var total_downvote int
+		var photoID int
+		var totalUpvote int
+		var totalDownvote int
 		var difference int
 
-		err = rows.Scan(&photo_id, &total_upvote, &total_downvote, &difference)
+		err = rows.Scan(&photoID, &totalUpvote, &totalDownvote, &difference)
 		if err != nil {
 			return nil, err
 		}
 
 		photos = append(photos, &sharedModels.TopRatedPhotoResponse{
-			PhotoID: photo_id,
+			PhotoID: photoID,
 		})
 	}
 	return photos, nil

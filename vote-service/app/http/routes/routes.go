@@ -11,6 +11,7 @@ import (
 	"github.com/urfave/negroni"
 )
 
+// InitRoutes initializes the REST and IPC routes for this service.
 func InitRoutes(db *sql.DB, cnf config.Config) *mux.Router {
 	router := mux.NewRouter()
 	router = setRESTRoutes(db, cnf, router)

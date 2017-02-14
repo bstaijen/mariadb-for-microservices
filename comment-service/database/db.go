@@ -74,6 +74,7 @@ func GetCommentByID(db *sql.DB, id int) (*sharedModels.CommentResponse, error) {
 	return nil, ErrCommentNotFound
 }
 
+// GetComments return an array of comments.
 func GetComments(db *sql.DB, photoID, offset, nrOfRows int) ([]*sharedModels.CommentResponse, error) {
 	rows, err := db.Query("SELECT id, user_id, photo_id, comment, createdAt FROM comments WHERE photo_id=? ORDER BY createdAt DESC LIMIT ?, ?", photoID, offset, nrOfRows)
 	if err != nil {
@@ -89,6 +90,7 @@ func GetComments(db *sql.DB, photoID, offset, nrOfRows int) ([]*sharedModels.Com
 	return responses, nil
 }
 
+// GetCommentCount returns the number of comment counts
 func GetCommentCount(db *sql.DB, items []*sharedModels.CommentCountRequest) ([]*sharedModels.CommentCountResponse, error) {
 
 	if len(items) < 1 {

@@ -13,6 +13,7 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 )
 
+// GetTopRatedHandler is the handler for the top rated timeline.
 func GetTopRatedHandler(connection *sql.DB) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
@@ -32,6 +33,7 @@ func GetTopRatedHandler(connection *sql.DB) negroni.HandlerFunc {
 	})
 }
 
+// GetHotHandler is the handler for the hot photos timeline
 func GetHotHandler(connection *sql.DB) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
@@ -51,6 +53,7 @@ func GetHotHandler(connection *sql.DB) negroni.HandlerFunc {
 	})
 }
 
+// HasVotedHandler is the handler for calculating whether the user has voted on a photo or not.
 func HasVotedHandler(connection *sql.DB) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
@@ -78,6 +81,7 @@ func HasVotedHandler(connection *sql.DB) negroni.HandlerFunc {
 	})
 }
 
+// GetVoteCountHandler is the handler for calculating the number of votes on a photo
 func GetVoteCountHandler(connection *sql.DB) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		type Collection struct {

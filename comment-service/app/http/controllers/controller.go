@@ -20,6 +20,7 @@ import (
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 )
 
+// CreateHandler creates a comment and stores it in the database
 func CreateHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		commentObject := &models.CommentCreate{}
@@ -50,6 +51,7 @@ func CreateHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	})
 }
 
+// ListCommentsHandler return a list of comments
 func ListCommentsHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
@@ -96,6 +98,7 @@ func ListCommentsHandler(connection *sql.DB, cnf config.Config) negroni.HandlerF
 	})
 }
 
+// GetCommentCountHandler returns a list of counts beloning to comments.
 func GetCommentCountHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		if r.Body == nil {
@@ -127,6 +130,7 @@ func GetCommentCountHandler(connection *sql.DB, cnf config.Config) negroni.Handl
 	})
 }
 
+// GetLastTenHandler returns a list of last 10 comments
 func GetLastTenHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
