@@ -7,13 +7,14 @@ import (
 
 // Config contains the configuration for the service
 type Config struct {
-	Port       int
-	DBUsername string
-	DBPassword string
-	DBHost     string
-	DBPort     int
-	Database   string
-	SecretKey  string
+	Port                int
+	DBUsername          string
+	DBPassword          string
+	DBHost              string
+	DBPort              int
+	Database            string
+	SecretKey           string
+	PhotoServiceBaseurl string
 }
 
 // LoadConfig returns the config from the environment variables
@@ -55,6 +56,10 @@ func LoadConfig() Config {
 
 	if _, ok := os.LookupEnv("SECRET_KEY"); ok {
 		config.SecretKey = os.Getenv("SECRET_KEY")
+	}
+
+	if _, ok := os.LookupEnv("PHOTO_SERVICE_URL"); ok {
+		config.PhotoServiceBaseurl = os.Getenv("PHOTO_SERVICE_URL")
 	}
 	return config
 }

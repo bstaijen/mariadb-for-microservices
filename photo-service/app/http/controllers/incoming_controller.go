@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/app/models"
@@ -82,12 +81,12 @@ func TopRatedHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc 
 				col.Objects = make([]*sharedModels.TopRatedPhotoResponse, 0)
 				err := util.ResponseJSONToObject(res, &col)
 				if err != nil {
-					log.Fatal(err)
+					logrus.Warn(err)
 				}
 				for _, v := range col.Objects {
 					photo, err := db.GetPhotoById(connection, v.PhotoID)
 					if err != nil {
-						logrus.Fatal(err)
+						logrus.Warn(err)
 					}
 					if photo != nil {
 						photos = append(photos, photo)
@@ -140,12 +139,12 @@ func HotHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 				col.Objects = make([]*sharedModels.TopRatedPhotoResponse, 0)
 				err := util.ResponseJSONToObject(res, &col)
 				if err != nil {
-					log.Fatal(err)
+					logrus.Warn(err)
 				}
 				for _, v := range col.Objects {
 					photo, err := db.GetPhotoById(connection, v.PhotoID)
 					if err != nil {
-						logrus.Fatal(err)
+						logrus.Warn(err)
 					}
 					if photo != nil {
 						photos = append(photos, photo)
@@ -345,12 +344,12 @@ func getUsername(cnf config.Config, input []*sharedModels.GetUsernamesRequest) [
 			col.Objects = make([]*sharedModels.GetUsernamesResponse, 0)
 			err := util.ResponseJSONToObject(res, &col)
 			if err != nil {
-				log.Fatal(err)
+				logrus.Warn(err)
 			}
 			usernames = col.Objects
 		})
 		if err != nil {
-			logrus.Fatal(err)
+			logrus.Warn(err)
 		}
 	} else {
 		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
@@ -389,12 +388,12 @@ func getComments(cnf config.Config, input []*sharedModels.CommentRequest) []*sha
 			col.Objects = make([]*sharedModels.CommentResponse, 0)
 			err := util.ResponseJSONToObject(res, &col)
 			if err != nil {
-				log.Fatal(err)
+				logrus.Warn(err)
 			}
 			comments = col.Objects
 		})
 		if err != nil {
-			logrus.Fatal(err)
+			logrus.Warn(err)
 		}
 	} else {
 		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
@@ -432,12 +431,12 @@ func getCommentCount(cnf config.Config, input []*sharedModels.CommentCountReques
 			col.Objects = make([]*sharedModels.CommentCountResponse, 0)
 			err := util.ResponseJSONToObject(res, &col)
 			if err != nil {
-				log.Fatal(err)
+				logrus.Warn(err)
 			}
 			comments = col.Objects
 		})
 		if err != nil {
-			logrus.Fatal(err)
+			logrus.Warn(err)
 		}
 	} else {
 		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
@@ -473,12 +472,12 @@ func getVotes(cnf config.Config, input []*sharedModels.VoteCountRequest) []*shar
 			col.Objects = make([]*sharedModels.VoteCountResponse, 0)
 			err := util.ResponseJSONToObject(res, &col)
 			if err != nil {
-				log.Fatal(err)
+				logrus.Warn(err)
 			}
 			votes = col.Objects
 		})
 		if err != nil {
-			logrus.Fatal(err)
+			logrus.Warn(err)
 		}
 	} else {
 		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
@@ -514,12 +513,12 @@ func voted(cnf config.Config, input []*sharedModels.HasVotedRequest) []*sharedMo
 			col.Objects = make([]*sharedModels.HasVotedResponse, 0)
 			err := util.ResponseJSONToObject(res, &col)
 			if err != nil {
-				log.Fatal(err)
+				logrus.Warn(err)
 			}
 			hasVoted = col.Objects
 		})
 		if err != nil {
-			logrus.Fatal(err)
+			logrus.Warn(err)
 		}
 	} else {
 		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)

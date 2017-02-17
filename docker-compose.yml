@@ -76,6 +76,7 @@ services:
         - "DB_PORT=3306"
         - "DB=VoteService"
         - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        - "PHOTO_SERVICE_URL=http://photo:5002/"
         - "affinity:com.mariadb.host!=votesvc"
         labels:
         - "com.mariadb.host=votesvc"

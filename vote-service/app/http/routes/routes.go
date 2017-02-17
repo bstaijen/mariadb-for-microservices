@@ -28,6 +28,10 @@ func setRESTRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Route
 		negroni.HandlerFunc(middleware.AccessControlHandler),
 		controllers.CreateHandler(db, cnf),
 	))
+	votes.Methods("GET").Handler(negroni.New(
+		negroni.HandlerFunc(middleware.AccessControlHandler),
+		controllers.GetVotesFromAUser(db, cnf),
+	))
 	return router
 }
 

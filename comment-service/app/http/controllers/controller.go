@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/config"
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/database"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/urfave/negroni"
 
 	"strconv"
@@ -54,7 +56,7 @@ func CreateHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 // ListCommentsHandler return a list of comments
 func ListCommentsHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-
+		logrus.Info("List comments")
 		offset, rows := helper.PaginationFromRequest(r)
 
 		// get PhotoID
@@ -95,6 +97,96 @@ func ListCommentsHandler(connection *sql.DB, cnf config.Config) negroni.HandlerF
 
 		// return
 		util.SendOK(w, comments)
+	})
+}
+
+// ListCommentsFromUser : Return all comments from an user and add the photo(extra information) too.
+func ListCommentsFromUser(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
+	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		logrus.Info("List comments from user")
+
+		offset, rows := helper.PaginationFromRequest(r)
+
+		var queryToken = r.URL.Query().Get("token")
+
+		if len(queryToken) < 1 {
+			queryToken = r.Header.Get("token")
+		}
+
+		if len(queryToken) < 1 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(string("token is mandatory")))
+			return
+		}
+
+		tok, err := jwt.Parse(queryToken, func(t *jwt.Token) (interface{}, error) {
+			return []byte(cnf.SecretKey), nil
+		})
+
+		if err != nil {
+			util.SendErrorMessage(w, "You are not authorized")
+			return
+		}
+
+		claims := tok.Claims.(jwt.MapClaims)
+		var ID = claims["sub"].(float64) // gets the ID
+
+		comments, err := db.GetCommentsByUserID(connection, int(ID), offset, rows)
+
+		// collect photo IDs.
+		ids := make([]*sharedModels.TopRatedPhotoResponse, 0)
+		f := make([]*sharedModels.HasVotedRequest, 0)
+		g := make([]*sharedModels.VoteCountRequest, 0)
+		for _, v := range comments {
+			ids = append(ids, &sharedModels.TopRatedPhotoResponse{
+				PhotoID: v.PhotoID,
+			})
+
+			f = append(f, &sharedModels.HasVotedRequest{
+				PhotoID: v.PhotoID,
+				UserID:  v.UserID,
+			})
+
+			g = append(g, &sharedModels.VoteCountRequest{
+				PhotoID: v.PhotoID,
+			})
+		}
+
+		// get photos
+		photos := getPhotos(cnf, ids)
+
+		// get votes
+		photos = appendUserVoted(cnf, f, photos)
+		photos = appendVotesCount(cnf, g, photos)
+
+		// merge with comments
+		type Res struct {
+			Comment *sharedModels.CommentResponse `json:"comment"`
+			Photo   *sharedModels.PhotoResponse   `json:"photo"`
+		}
+
+		h := make([]*Res, 0)
+		for _, v := range comments {
+
+			for _, photo := range photos {
+				if v.PhotoID == photo.ID {
+					h = append(h, &Res{
+						Comment: v,
+						Photo:   photo,
+					})
+				}
+			}
+		}
+
+		if err != nil {
+			util.SendError(w, err)
+			return
+		}
+
+		type Resp struct {
+			Result []*Res `json:"result"`
+		}
+		util.SendOK(w, &Resp{Result: h})
 	})
 }
 
@@ -213,4 +305,169 @@ func getUsernames(cnf config.Config, input []*sharedModels.GetUsernamesRequest) 
 		usernames = col.Objects
 	})
 	return usernames
+}
+
+func getPhotos(cnf config.Config, input []*sharedModels.TopRatedPhotoResponse) []*sharedModels.PhotoResponse {
+	type Req struct {
+		Requests []*sharedModels.TopRatedPhotoResponse `json:"requests"`
+	}
+	body, _ := json.Marshal(&Req{Requests: input})
+
+	// Make url
+	url := cnf.PhotoServiceBaseurl + "ipc/getPhotos"
+
+	photos := make([]*sharedModels.PhotoResponse, 0)
+	if strings.HasPrefix(url, "http") {
+		err := util.Request("GET", url, body, func(res *http.Response) {
+			// Error handling
+			if res.StatusCode < 200 || res.StatusCode > 299 {
+				printResponseError(res)
+				return
+			}
+
+			// Happy path
+			type Collection struct {
+				Objects []*sharedModels.PhotoResponse `json:"results"`
+			}
+			col := &Collection{}
+			col.Objects = make([]*sharedModels.PhotoResponse, 0)
+			err := util.ResponseJSONToObject(res, &col)
+			if err != nil {
+				log.Fatal(err)
+			}
+			photos = col.Objects
+		})
+		if err != nil {
+			logrus.Fatal(err)
+		}
+	} else {
+		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
+	}
+	return photos
+}
+
+// appendVotesCount triggers `GET votes request` and appends result to []Photo
+func appendVotesCount(cnf config.Config, photoCountIdentifiers []*sharedModels.VoteCountRequest, photos []*sharedModels.PhotoResponse) []*sharedModels.PhotoResponse {
+	// Get the vote counts and add them
+	results := getVotes(cnf, photoCountIdentifiers)
+	for index := 0; index < len(photos); index++ {
+		photoObject := photos[index]
+
+		for resultsIndex := 0; resultsIndex < len(results); resultsIndex++ {
+			resultsObject := results[resultsIndex]
+			if photoObject.ID == resultsObject.PhotoID {
+				photoObject.TotalVotes = resultsObject.UpVoteCount + resultsObject.DownVoteCount
+				photoObject.UpvoteCount = resultsObject.UpVoteCount
+				photoObject.DownvoteCount = resultsObject.DownVoteCount
+			}
+		}
+	}
+	return photos
+}
+
+// appendUserVoted triggers `GET voted request` and appends results to []Photo. This function will
+// lookup whether the user has voted on the Photo
+func appendUserVoted(cnf config.Config, photoVotedIdentifiers []*sharedModels.HasVotedRequest, photos []*sharedModels.PhotoResponse) []*sharedModels.PhotoResponse {
+	youVoted := voted(cnf, photoVotedIdentifiers)
+
+	for index := 0; index < len(photos); index++ {
+		photoObject := photos[index]
+		for votesIndex := 0; votesIndex < len(youVoted); votesIndex++ {
+			obj := youVoted[votesIndex]
+
+			if photoObject.ID == obj.PhotoID {
+				photoObject.YouUpvote = obj.Upvote
+				photoObject.YouDownvote = obj.Downvote
+			}
+		}
+	}
+	return photos
+}
+
+// Get votes from the VotesSerivce
+func getVotes(cnf config.Config, input []*sharedModels.VoteCountRequest) []*sharedModels.VoteCountResponse {
+	type Req struct {
+		Requests []*sharedModels.VoteCountRequest `json:"requests"`
+	}
+	body, _ := json.Marshal(&Req{Requests: input})
+
+	// Make url
+	url := cnf.VoteServiceBaseurl + "ipc/count"
+
+	//Return object
+	votes := make([]*sharedModels.VoteCountResponse, 0)
+	if strings.HasPrefix(url, "http") {
+		err := util.Request("GET", url, body, func(res *http.Response) {
+			// Error handling
+			if res.StatusCode < 200 || res.StatusCode > 299 {
+				printResponseError(res)
+				return
+			}
+
+			// Happy path
+			type Collection struct {
+				Objects []*sharedModels.VoteCountResponse `json:"results"`
+			}
+			col := &Collection{}
+			col.Objects = make([]*sharedModels.VoteCountResponse, 0)
+			err := util.ResponseJSONToObject(res, &col)
+			if err != nil {
+				logrus.Warn(err)
+			}
+			votes = col.Objects
+		})
+		if err != nil {
+			logrus.Warn(err)
+		}
+	} else {
+		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
+	}
+	return votes
+}
+
+// Determine if the user has voted on a photo. VotesService
+func voted(cnf config.Config, input []*sharedModels.HasVotedRequest) []*sharedModels.HasVotedResponse {
+	type Req struct {
+		Requests []*sharedModels.HasVotedRequest `json:"requests"`
+	}
+	body, _ := json.Marshal(&Req{Requests: input})
+
+	// Make url
+	url := cnf.VoteServiceBaseurl + "ipc/voted"
+
+	//Return object
+	hasVoted := make([]*sharedModels.HasVotedResponse, 0)
+	if strings.HasPrefix(url, "http") {
+		err := util.Request("GET", url, body, func(res *http.Response) {
+			// Error handling
+			if res.StatusCode < 200 || res.StatusCode > 299 {
+				printResponseError(res)
+				return
+			}
+
+			// Happy path
+			type Collection struct {
+				Objects []*sharedModels.HasVotedResponse `json:"results"`
+			}
+			col := &Collection{}
+			col.Objects = make([]*sharedModels.HasVotedResponse, 0)
+			err := util.ResponseJSONToObject(res, &col)
+			if err != nil {
+				logrus.Warn(err)
+			}
+			hasVoted = col.Objects
+		})
+		if err != nil {
+			logrus.Warn(err)
+		}
+	} else {
+		logrus.Errorf("Wrong URL. Expected something which starts with http, instead got %v.", url)
+	}
+	return hasVoted
+}
+
+func printResponseError(res *http.Response) {
+	logrus.Errorf("Response error with statuscode %v.", res.Status)
+	data, _ := ioutil.ReadAll(res.Body)
+	logrus.Error(string(data))
 }

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" ng-app="MariaDBApp">
 <head>
+    <title>Photo-sharing application | MariaDB</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,16 +17,18 @@
         }
     </style>
 
+    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="assets/css/style.css"/>
     <link rel="stylesheet" href="assets/css/animate.css"/>
     <link rel="stylesheet" href="assets/css/helpers.css"/>
-    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
 
+
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans"/>
     <link rel="shortcut icon" href="https://mariadb.com/sites/default/files/favicon.png" type="image/png">
 </head>
 <body>
-<nav class="navbar navbar-default navbar-fixed-top" ng-controller="NavController">
-    <div class="container">
+<nav class="navbar navbar-mariadb navbar-fixed-top" ng-controller="NavController">
+    <div class="container-fluid">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar1">
                 <span class="sr-only">Toggle navigation</span>
@@ -37,17 +40,35 @@
             </a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li ng-class="{active: $route.current.activetab == 'home'}"><a href="#/">Incoming</a></li>
+            <ul class="nav navbar-nav nav-pills">
+                <li ng-class="{active: $route.current.activetab == 'home'}"><a href="#/">Fresh</a></li>
                 <li ng-class="{active: $route.current.activetab == 'hot'}"><a href="#/hot">Hot</a></li>
-                <li ng-class="{active: $route.current.activetab == 'toprated'}"><a href="#/toprated">Top Rated</a></li>
+                <li ng-class="{active: $route.current.activetab == 'toprated'}"><a href="#/toprated">Trending</a></li>
             </ul>
+            <form ng-show="isLoggedIn()" class="navbar-form navbar-right">
+                <button type="submit" class="btn btn-mariadb-green btn-circle" ng-click="openUploadWindow()"><i
+                        class="fa fa-plus"></i> Upload
+                </button>
+            </form>
             <ul class="nav navbar-nav navbar-right">
-                <li ng-hide="isLoggedIn()" ng-class="{active: $route.current.activetab == 'login'}"><a href="#/login">Login</a></li>
-                <li ng-hide="isLoggedIn()" ng-class="{active: $route.current.activetab == 'register'}"><a href="#/register">Register</a></li>
-                <li ng-show="isLoggedIn()" ng-class="{active: $route.current.activetab == 'upload'}"><a href="#/upload">Upload</a></li>
-                <li ng-show="isLoggedIn()" ng-class="{active: $route.current.activetab == 'profile'}"><a href="#/profile">Profile</a></li>
-                <li ng-show="isLoggedIn()" ng-class="{active: $route.current.activetab == 'logout'}"><a href="#/logout">Logout</a>
+                <li ng-hide="isLoggedIn()" ng-class="{active: $route.current.activetab == 'login'}"><a href="#/login">Login</a>
+                </li>
+                <li ng-hide="isLoggedIn()" ng-class="{active: $route.current.activetab == 'register'}"><a
+                        href="#/register">Register</a></li>
+
+                <li ng-show="isLoggedIn()" role="presentation" class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-user fa-1x"></i> <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li ng-show="isLoggedIn()" ng-class="{active: $route.current.activetab == 'user'}"><a
+                                href="#/user">Profile</a></li>
+                        <li ng-show="isLoggedIn()" ng-class="{active: $route.current.activetab == 'profile'}"><a
+                                href="#/profile">Settings</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li ng-show="isLoggedIn()" ng-class="{active: $route.current.activetab == 'logout'}"><a href="#/logout">Logout</a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
         </div>
@@ -87,5 +108,6 @@
 <script src="controllers/RegisterController.js"></script>
 <script src="controllers/TopRatedController.js"></script>
 <script src="controllers/HotController.js"></script>
+<script src="controllers/UserController.js"></script>
 </body>
 </html>

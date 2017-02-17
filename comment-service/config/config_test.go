@@ -45,6 +45,44 @@ func TestProfileServiceBaseurlEmpty(t *testing.T) {
 	}
 }
 
+func TestPhotoServiceBaseurl(t *testing.T) {
+	os.Setenv("PHOTO_SERVICE_URL", "/test")
+	actual := config.LoadConfig().PhotoServiceBaseurl
+	expected := "/test"
+	if expected != actual {
+		t.Fatalf("Expected %v got %v", expected, actual)
+	}
+	os.Clearenv()
+}
+
+func TestPhotoServiceBaseurlEmpty(t *testing.T) {
+	os.Clearenv()
+	actual := config.LoadConfig().PhotoServiceBaseurl
+	expected := ""
+	if expected != actual {
+		t.Fatalf("Expected %v got %v", expected, actual)
+	}
+}
+
+func TestVoteServiceBaseurl(t *testing.T) {
+	os.Setenv("VOTE_SERVICE_URL", "/test")
+	actual := config.LoadConfig().VoteServiceBaseurl
+	expected := "/test"
+	if expected != actual {
+		t.Fatalf("Expected %v got %v", expected, actual)
+	}
+	os.Clearenv()
+}
+
+func TestVoteServiceBaseurlEmpty(t *testing.T) {
+	os.Clearenv()
+	actual := config.LoadConfig().VoteServiceBaseurl
+	expected := ""
+	if expected != actual {
+		t.Fatalf("Expected %v got %v", expected, actual)
+	}
+}
+
 func TestDBUsername(t *testing.T) {
 	os.Setenv("DB_USERNAME", "user")
 	actual := config.LoadConfig().DBUsername
@@ -134,6 +172,25 @@ func TestDB(t *testing.T) {
 func TestDBEmpty(t *testing.T) {
 	os.Clearenv()
 	actual := config.LoadConfig().Database
+	expected := ""
+	if expected != actual {
+		t.Fatalf("Expected %s got %s", expected, actual)
+	}
+}
+
+func TestSecretKey(t *testing.T) {
+	os.Setenv("SECRET_KEY", "Scrt")
+	actual := config.LoadConfig().SecretKey
+	expected := "Scrt"
+	if expected != actual {
+		t.Fatalf("Expected %s got %s", expected, actual)
+	}
+	os.Clearenv()
+}
+
+func TestSecretKeyEmpty(t *testing.T) {
+	os.Clearenv()
+	actual := config.LoadConfig().SecretKey
 	expected := ""
 	if expected != actual {
 		t.Fatalf("Expected %s got %s", expected, actual)

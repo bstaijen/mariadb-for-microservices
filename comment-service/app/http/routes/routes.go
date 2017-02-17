@@ -26,6 +26,11 @@ func setRESTRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Route
 		negroni.HandlerFunc(middleware.AcceptOPTIONS),
 	))
 
+	comments.Handle("/fromuser", negroni.New(
+		negroni.HandlerFunc(middleware.AccessControlHandler),
+		controllers.ListCommentsFromUser(db, cnf),
+	)).Methods("GET")
+
 	// Create a comment /comments
 	comments.Methods("POST").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
@@ -35,6 +40,7 @@ func setRESTRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Route
 		negroni.HandlerFunc(middleware.AccessControlHandler),
 		controllers.ListCommentsHandler(db, cnf),
 	))
+
 	return router
 }
 

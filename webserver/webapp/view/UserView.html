@@ -1,0 +1,96 @@
+<div class="container col=md-6">
+    <h2 class="text-center">{{username || ''}}</h2>
+    <ul class="nav nav-tabs nav-justified">
+        <li role="presentation" class="pointer" ng-click="showPhotosTab()" ng-class="photosTabVisible ? 'active' : ''">
+            <a>Photos</a></li>
+        <li role="presentation" class="pointer" ng-click="showCommentsTab()"
+            ng-class="commentsTabVisible ? 'active' : ''"><a>Comments</a></li>
+        <li role="presentation" class="pointer" ng-click="showVotesTab()" ng-class="votesTabVisible ? 'active' : ''"><a>Votes</a>
+        </li>
+    </ul>
+    <div class="panel" style="border-left: 1px solid #ddd;border-right: 1px solid #ddd;border-bottom: 1px solid #ddd;">
+        <div ng-show="photosTabVisible" class="panel-body animated fadeIn">
+            <div ng-repeat="photo in photos" class="list-group-item">
+                <div class="container-fluid pn mn">
+                    <div class="col-sm-4">
+                        <img class="img-responsive" ng-src="{{buildImageUrl(photo.filename)}}"/>
+                    </div>
+                    <div class="col-sm-4">
+                        <ul class="list-group">
+                            <li class="list-group-item">You added this photo {{displayMoment(photo.createdAt)}}.</li>
+                        </ul>
+                    </div>
+                    <div class="col-sm-4">
+                        <ul class="list-group">
+                            <li class="list-group-item">Percentage <span class="badge">{{calcPerc(photo)}}</span>
+                            </li>
+                            <li class="list-group-item"># of upvotes <span
+                                    class="badge">{{photo.upvote_count || 0}}</span></li>
+                            <li class="list-group-item"># of downvotes<span
+                                    class="badge">{{photo.downvote_count || 0}}</span></li>
+                            <li class="list-group-item">Total votes <span
+                                    class="badge">{{photo.totalVotes || 0}}</span></li>
+                            <li class="list-group-item"># of comments<span
+                                    class="badge">{{photo.comment_count || 0}}</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-show="commentsTabVisible" class="panel-body animated fadeIn">
+            <div ng-repeat="tupel in comment_tupel" class="list-group-item">
+                <div class="container-fluid pn mn">
+                    <div class="col-sm-4">
+                        <img class="img-responsive" ng-src="{{buildImageUrl(tupel.photo.filename)}}"/>
+                    </div>
+                    <div class="col-sm-4">
+                        You commented '<span class="text-muted">{{tupel.comment.comment}}</span>'.
+                    </div>
+                    <div class="col-sm-4">
+                        <ul class="list-group">
+                            <li class="list-group-item">Percentage <span class="badge">{{calcPerc(tupel.photo)}}</span>
+                            </li>
+                            <li class="list-group-item"># of upvotes <span
+                                    class="badge">{{tupel.photo.upvote_count || 0}}</span></li>
+                            <li class="list-group-item"># of downvotes<span
+                                    class="badge">{{tupel.photo.downvote_count || 0}}</span></li>
+                            <li class="list-group-item">Total votes <span
+                                    class="badge">{{tupel.photo.totalVotes || 0}}</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-show="votesTabVisible" class="panel-body animated fadeIn">
+            <div ng-repeat="photo in voted_photos" class="list-group-item">
+                <div class="container-fluid pn mn">
+                    <div class="col-md-4">
+                        <img class="img-responsive" ng-src="{{buildImageUrl(photo.filename)}}"/>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn disabled" ng-show="photo.upvote == true"
+                                ng-class="photo.upvote ? 'btn-mariadb-green' : 'btn-default'">
+                            <i class="fa fa-3x fa-thumbs-o-up"></i>
+                        </button>
+                        <button class="btn disabled" ng-show="photo.downvote == true"
+                                ng-class="photo.downvote ? 'btn-danger' : 'btn-default'">
+                            <i class="fa fa-3x fa-thumbs-o-down"></i>
+                        </button>
+                    </div>
+                    <div class="col-sm-4">
+                        <ul class="list-group">
+                            <li class="list-group-item">Percentage <span class="badge">{{calcPerc(photo)}}</span>
+                            </li>
+                            <li class="list-group-item"># of upvotes <span
+                                    class="badge">{{photo.upvote_count || 0}}</span></li>
+                            <li class="list-group-item"># of downvotes<span
+                                    class="badge">{{photo.downvote_count || 0}}</span></li>
+                            <li class="list-group-item">Total votes <span class="badge">{{photo.totalVotes || 0}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

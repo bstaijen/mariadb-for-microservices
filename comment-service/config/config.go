@@ -9,11 +9,14 @@ import (
 type Config struct {
 	Port                  int
 	ProfileServiceBaseurl string
+	PhotoServiceBaseurl   string
+	VoteServiceBaseurl    string
 	DBUsername            string
 	DBPassword            string
 	DBHost                string
 	DBPort                int
 	Database              string
+	SecretKey             string
 }
 
 // LoadConfig returns the config from the environment variables
@@ -31,6 +34,14 @@ func LoadConfig() Config {
 
 	if _, ok := os.LookupEnv("PROFILE_SERVICE_URL"); ok {
 		config.ProfileServiceBaseurl = os.Getenv("PROFILE_SERVICE_URL")
+	}
+
+	if _, ok := os.LookupEnv("PHOTO_SERVICE_URL"); ok {
+		config.PhotoServiceBaseurl = os.Getenv("PHOTO_SERVICE_URL")
+	}
+
+	if _, ok := os.LookupEnv("VOTE_SERVICE_URL"); ok {
+		config.VoteServiceBaseurl = os.Getenv("VOTE_SERVICE_URL")
 	}
 
 	if _, ok := os.LookupEnv("DB_USERNAME"); ok {
@@ -56,6 +67,8 @@ func LoadConfig() Config {
 	if _, ok := os.LookupEnv("DB"); ok {
 		config.Database = os.Getenv("DB")
 	}
-
+	if _, ok := os.LookupEnv("SECRET_KEY"); ok {
+		config.SecretKey = os.Getenv("SECRET_KEY")
+	}
 	return config
 }

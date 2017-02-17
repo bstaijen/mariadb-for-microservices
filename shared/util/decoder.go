@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 )
 
-// RequestToJSON converts a Request containg a json object to a targeted interface
+// RequestToJSON converts a Request containing a json object to a targeted interface
 func RequestToJSON(req *http.Request, target interface{}) error {
 	if req.Body == nil {
 		return errors.New("Bad json")

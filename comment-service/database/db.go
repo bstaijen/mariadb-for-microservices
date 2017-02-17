@@ -90,6 +90,21 @@ func GetComments(db *sql.DB, photoID, offset, nrOfRows int) ([]*sharedModels.Com
 	return responses, nil
 }
 
+func GetCommentsByUserID(db *sql.DB, userID, offset, nrOfRows int) ([]*sharedModels.CommentResponse, error) {
+	rows, err := db.Query("SELECT id, user_id, photo_id, comment, createdAt FROM comments WHERE user_id=? ORDER BY createdAt DESC LIMIT ?, ?", userID, offset, nrOfRows)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]*sharedModels.CommentResponse, 0)
+	for rows.Next() {
+		obj := &sharedModels.CommentResponse{}
+		rows.Scan(&obj.ID, &obj.UserID, &obj.PhotoID, &obj.Comment, &obj.CreatedAt)
+		responses = append(responses, obj)
+	}
+	return responses, nil
+}
+
 // GetCommentCount returns the number of comment counts
 func GetCommentCount(db *sql.DB, items []*sharedModels.CommentCountRequest) ([]*sharedModels.CommentCountResponse, error) {
 

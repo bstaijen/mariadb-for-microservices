@@ -1,4 +1,4 @@
-<div class="panel panel-info animated fadeIn">
+<div class="panel panel-mariadb-dark animated fadeIn">
     <div class="panel-heading">
         <div class="panel-title">{{photo.title}}</div>
     </div>
@@ -7,7 +7,7 @@
              ng-src="{{buildImageUrl(photo.filename)}}"/>
     </div>
     <div class="panel-body text-center">
-        <button class="btn" ng-class="photo.upvote ? 'btn-success' : 'btn-default'" ng-click="upvote(photo)">
+        <button class="btn" ng-class="photo.upvote ? 'btn-mariadb-green' : 'btn-default'" ng-click="upvote(photo)">
             <i class="fa fa-3x fa-thumbs-o-up"></i>
         </button>
         <button class="btn" ng-class="photo.downvote ? 'btn-danger' : 'btn-default'" ng-click="downvote(photo)">
@@ -19,7 +19,7 @@
     </div>
     <div class="panel-body text-center">
         <span class="text-muted">{{photo.totalVotes || 0}} votes - {{calcPerc(photo)}}</span><br>
-        <span class="text-muted">{{photo.upvote_count}} <i class="fa fa-thumbs-o-up"></i> - {{photo.downvote_count}} <i class="fa fa-thumbs-o-down"></i> - {{photo.comment_count || 0}} <i class="fa fa-comment-o"></i></span>
+        <span class="text-muted">{{photo.upvote_count || 0}} <i class="fa fa-thumbs-o-up"></i> - {{photo.downvote_count || 0}} <i class="fa fa-thumbs-o-down"></i> - {{photo.comment_count || 0}} <i class="fa fa-comment-o"></i></span>
     </div>
     <div class="panel-body animated fadeIn" ng-show="showMessages">
         <div class="col-md-3"></div>
@@ -44,6 +44,6 @@
     </div>
 
     <div class="panel-footer">
-        Image uploaded <span class="text-muted">{{displayMoment(photo.createdAt)}}</span> by <span class="text-muted">{{photo.username || '-'}}</span><br>
+        Image uploaded <span class="text-muted-mariadb-blue">{{displayMoment(photo.createdAt)}}</span> by <span class="text-muted-mariadb-blue">{{photo.username || '-'}}</span><br>
     </div>
 </div>

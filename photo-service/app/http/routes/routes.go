@@ -15,6 +15,7 @@ import (
 func InitRoutes(db *sql.DB, cnf config.Config) *mux.Router {
 	router := mux.NewRouter()
 	router = setPhotoRoutes(db, cnf, router)
+	router = setIPCRoutes(db, cnf, router)
 	return router
 }
 
@@ -43,7 +44,7 @@ func setPhotoRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Rout
 	// Image for user /image/{id}/list
 	image.Handle("/{id}/list", negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
-		controllers.ListByUserIDHandler(db),
+		controllers.ListByUserIDHandler(db, cnf),
 	)).Methods("GET")
 
 	// Incoming Timeline /image/list
@@ -72,6 +73,24 @@ func setPhotoRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Rout
 		negroni.HandlerFunc(middleware.AccessControlHandler),
 		controllers.IndexHandler(db),
 	))
+
+	return router
+}
+
+func setIPCRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Router {
+	// Subrouter /ipc
+	image := router.PathPrefix("/ipc").Subrouter()
+
+	// Options
+	image.Methods("OPTIONS").Handler(negroni.New(
+		negroni.HandlerFunc(middleware.AcceptOPTIONS),
+	))
+
+	// Get photos
+	image.Handle("/getPhotos", negroni.New(
+		negroni.HandlerFunc(middleware.AccessControlHandler),
+		controllers.IPCGetPhotos(db, cnf),
+	)).Methods("GET")
 
 	return router
 }

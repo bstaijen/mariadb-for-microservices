@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 
@@ -91,7 +92,7 @@ func IndexHandler(connection *sql.DB) negroni.HandlerFunc {
 }
 
 // ListByUserIDHandler list all photos owned by an user.
-func ListByUserIDHandler(connection *sql.DB) negroni.HandlerFunc {
+func ListByUserIDHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		vars := mux.Vars(r)
 		strID := vars["id"]
@@ -106,6 +107,9 @@ func ListByUserIDHandler(connection *sql.DB) negroni.HandlerFunc {
 			util.SendError(w, err)
 			return
 		}
+
+		photos = findResources(cnf, photos, id, true, true, true)
+
 		util.SendOK(w, photos)
 	})
 }

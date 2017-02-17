@@ -154,7 +154,7 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal) {
                 var up = photo.upvote_count < 1 ? 0 : photo.upvote_count * 100;
 
                 if (down < 1 && up < 1) {
-                    return '-';
+                    return '0%';
                 } else if (down < 1) {
                     return '100 %'
                 } else if (up < 1) {

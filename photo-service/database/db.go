@@ -4,11 +4,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
+	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 )
 
 // OpenConnection opens the connection to the database
@@ -76,6 +78,46 @@ func GetPhotoById(db *sql.DB, id int) (*models.Photo, error) {
 		return photos[0], err
 	}
 	return nil, nil
+}
+
+func GetPhotos(db *sql.DB, items []*sharedModels.PhotoRequest) ([]*sharedModels.PhotoResponse, error) {
+	if len(items) < 1 {
+		return make([]*sharedModels.PhotoResponse, 0), nil
+	}
+
+	// QUERY BUILDER
+	query := "SELECT id, user_id, filename, title, createdAt FROM photos WHERE id IN"
+	query += "("
+
+	for i := 0; i < len(items); i++ {
+		if i+1 < len(items) {
+			// NOT LAST
+			query += strconv.Itoa(items[i].PhotoID) + ","
+		} else {
+			//LAST
+			query += strconv.Itoa(items[i].PhotoID)
+		}
+	}
+
+	query += ")"
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	photos := []*sharedModels.PhotoResponse{}
+	for rows.Next() {
+		photoObject := &sharedModels.PhotoResponse{}
+
+		err = rows.Scan(&photoObject.ID, &photoObject.UserID, &photoObject.Filename, &photoObject.Title, &photoObject.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		photos = append(photos, photoObject)
+	}
+	return photos, nil
 }
 
 // A parameter type prefixed with three dots (...) is called a variadic parameter.

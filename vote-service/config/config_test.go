@@ -139,3 +139,22 @@ func TestSecretKeyEmpty(t *testing.T) {
 		t.Fatalf("Expected %s got %s", expected, actual)
 	}
 }
+
+func TestPhotoServiceBaseurl(t *testing.T) {
+	os.Setenv("PHOTO_SERVICE_URL", "/testv")
+	actual := config.LoadConfig().PhotoServiceBaseurl
+	expected := "/testv"
+	if expected != actual {
+		t.Fatalf("Expected %v got %v", expected, actual)
+	}
+	os.Clearenv()
+}
+
+func TestPhotoServiceBaseurlEmpty(t *testing.T) {
+	os.Clearenv()
+	actual := config.LoadConfig().PhotoServiceBaseurl
+	expected := ""
+	if expected != actual {
+		t.Fatalf("Expected %v got %v", expected, actual)
+	}
+}

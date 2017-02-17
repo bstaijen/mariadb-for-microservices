@@ -200,6 +200,18 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
             comment: composeCommentUrl,
             profile: composeProfileUrl,
             photo: composePhotoUrl
+        },
+        getPhotosForUser: function(user_id, offset, nr_of_rows) {
+            var url = composePhotoUrl('/image/' + user_id + "/list?offset=" + offset + "&rows=" + nr_of_rows);
+            return get(url);
+        },
+        getTheVotesFromUser: function() {
+            var url = composePhotoUrl('/votes?token=' + LocalStorage.getToken());
+            return get(url);
+        },
+        getCommentsFromUser: function() {
+            var url = composePhotoUrl('/comments/fromuser?token=' + LocalStorage.getToken());
+            return get(url);
         }
     }
 });

@@ -188,6 +188,26 @@ func GetHotTimeline(db *sql.DB, offset int, nrOfRows int) ([]*sharedModels.TopRa
 	return photos, nil
 }
 
+// GetVotesFromUser returns the votes the user has placed on photos. Order by last created.
+func GetVotesFromUser(db *sql.DB, userID int, offset int, nrOfRows int) ([]*sharedModels.TopRatedPhotoResponse, error) {
+	rows, err := db.Query("SELECT photo_id FROM votes WHERE user_id = ? ORDER BY createdAt DESC LIMIT ?, ?", userID, offset, nrOfRows)
+	if err != nil {
+		return nil, err
+	}
+	photos := make([]*sharedModels.TopRatedPhotoResponse, 0)
+	for rows.Next() {
+		var photoID int
+		err = rows.Scan(&photoID)
+		if err != nil {
+			return nil, err
+		}
+		photos = append(photos, &sharedModels.TopRatedPhotoResponse{
+			PhotoID: photoID,
+		})
+	}
+	return photos, nil
+}
+
 // ErrUserNotFound error if user does not exist in database
 var ErrUserNotFound = errors.New("User does not exist")
 
