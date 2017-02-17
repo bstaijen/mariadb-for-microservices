@@ -30,6 +30,11 @@ func setPhotoRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Rout
 		negroni.HandlerFunc(middleware.AcceptOPTIONS),
 	))
 
+	image.Handle("/{id}/delete", negroni.New(
+		negroni.HandlerFunc(middleware.AccessControlHandler),
+		controllers.DeletePhotoHandler(db, cnf),
+	)).Methods("POST")
+
 	// Add image for user /image/{id}
 	image.Handle("/{id}", negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),

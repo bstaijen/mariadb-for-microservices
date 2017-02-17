@@ -115,4 +115,40 @@ app.controller('UserController', function ($scope, $window, LocalStorage, ApiSer
         )
     }
 
+    $scope.deleteComment = function(commentID) {
+        ApiService.deleteComment(commentID).then(
+            function(response){
+                console.info(response);
+
+                angular.forEach($scope.comment_tupel, function (tupel, index) {
+                    if (tupel.comment.id === commentID) {
+                        $scope.comment_tupel.splice(index, 1);
+                    }
+                })
+
+            },
+            function(error){
+                console.error(error);
+            }
+        );
+    };
+
+    $scope.deletePhoto = function(photoID) {
+        ApiService.deletePhoto(photoID).then(
+            function(response){
+                console.info(response);
+
+                angular.forEach($scope.photos, function (photo, index) {
+                    if (photo.id === photoID) {
+                        $scope.photos.splice(index, 1);
+                    }
+                })
+
+            },
+            function(error){
+                console.error(error);
+            }
+        );
+    };
+
 });

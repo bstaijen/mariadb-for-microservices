@@ -169,6 +169,15 @@ func GetLastTenComments(db *sql.DB, items []*sharedModels.CommentRequest) ([]*sh
 	return responses, nil
 }
 
+// DeleteCommentByID delete a comment in the database based on ID.
+func DeleteCommentByID(db *sql.DB, commentID int) (int64, error) {
+	res, err := db.Exec("DELETE FROM comments WHERE id = ?", commentID)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
+}
+
 // ErrCommentNotFound error if comment does not exist in database
 var ErrCommentNotFound = errors.New("Comment does not exist")
 

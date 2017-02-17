@@ -54,7 +54,7 @@ func InsertPhoto(db *sql.DB, photo *models.CreatePhoto) error {
 
 // ListImagesByUserID returns a list of photo's uploaded by the user.
 func ListImagesByUserID(db *sql.DB, id int) ([]*models.Photo, error) {
-	return selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos WHERE user_id=?", id)
+	return selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos WHERE user_id=? ORDER BY createdAt DESC", id)
 }
 
 // ListIncoming returns a list of photos ordered by last inserted
@@ -118,6 +118,15 @@ func GetPhotos(db *sql.DB, items []*sharedModels.PhotoRequest) ([]*sharedModels.
 		photos = append(photos, photoObject)
 	}
 	return photos, nil
+}
+
+// DeletePhotoByID delete a photo in the database based on ID.
+func DeletePhotoByID(db *sql.DB, photoID int) (int64, error) {
+	res, err := db.Exec("DELETE FROM photos WHERE id = ?", photoID)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
 }
 
 // A parameter type prefixed with three dots (...) is called a variadic parameter.

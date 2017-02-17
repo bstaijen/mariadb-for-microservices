@@ -212,6 +212,14 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
         getCommentsFromUser: function() {
             var url = composePhotoUrl('/comments/fromuser?token=' + LocalStorage.getToken());
             return get(url);
+        },
+        deleteComment: function(commentID) {
+            var url = composeCommentUrl('/comments/' + commentID + '/delete?token=' + LocalStorage.getToken());
+            return post(url, {})
+        },
+        deletePhoto: function(photoID) {
+            var url = composePhotoUrl('/image/' + photoID + '/delete?token=' + LocalStorage.getToken());
+            return post(url, {})
         }
     }
 });

@@ -14,6 +14,7 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/comment-service/database"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 
 	"strconv"
@@ -267,6 +268,69 @@ func GetLastTenHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 			Comments []*sharedModels.CommentResponse `json:"comments"`
 		}
 		util.SendOK(w, &Resp{Comments: responses})
+	})
+}
+
+// DeleteCommentHandler : is the handler to remove a comment in the database
+func DeleteCommentHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
+	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+
+		var queryToken = r.URL.Query().Get("token")
+
+		if len(queryToken) < 1 {
+			queryToken = r.Header.Get("token")
+		}
+
+		if len(queryToken) < 1 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(string("token is mandatory")))
+			return
+		}
+
+		tok, err := jwt.Parse(queryToken, func(t *jwt.Token) (interface{}, error) {
+			return []byte(cnf.SecretKey), nil
+		})
+
+		if err != nil {
+			util.SendErrorMessage(w, "You are not authorized")
+			return
+		}
+
+		claims := tok.Claims.(jwt.MapClaims)
+		var userID = claims["sub"].(float64) // gets the ID
+
+		// Get commentID
+		vars := mux.Vars(r)
+		strID := vars["id"]
+		commentID, err := strconv.Atoi(strID)
+
+		if err != nil {
+			util.SendErrorMessage(w, "id needs to be numeric")
+			return
+		}
+
+		if commentID < 1 {
+			util.SendErrorMessage(w, "id needs to be greater than 0")
+			return
+		}
+
+		comment, err := db.GetCommentByID(connection, commentID)
+		if err != nil {
+			util.SendError(w, err)
+			return
+		}
+
+		if comment.UserID != int(userID) {
+			util.SendErrorMessage(w, "you can only remove your own comment")
+			return
+		}
+
+		_, err = db.DeleteCommentByID(connection, commentID)
+		if err != nil {
+			util.SendError(w, err)
+			return
+		}
+		util.SendOKMessage(w, "Comment removed")
 	})
 }
 

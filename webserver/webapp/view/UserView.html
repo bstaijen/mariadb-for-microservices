@@ -19,6 +19,7 @@
                         <ul class="list-group">
                             <li class="list-group-item">You added this photo {{displayMoment(photo.createdAt)}}.</li>
                         </ul>
+                        <button type="button" class="btn btn-danger" ng-click="deletePhoto(photo.id)">Remove photo</button>
                     </div>
                     <div class="col-sm-4">
                         <ul class="list-group">
@@ -45,6 +46,8 @@
                     </div>
                     <div class="col-sm-4">
                         You commented '<span class="text-muted">{{tupel.comment.comment}}</span>'.
+                        <br>
+                        <button type="button" class="btn btn-danger" ng-click="deleteComment(tupel.comment.id)">Remove comment</button>
                     </div>
                     <div class="col-sm-4">
                         <ul class="list-group">

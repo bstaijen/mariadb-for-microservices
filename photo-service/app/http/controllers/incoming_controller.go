@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/app/models"
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/database"
+	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 
 	"io/ioutil"
@@ -159,6 +161,69 @@ func HotHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 		}
 		photos = findResources(cnf, photos, userID, true, true, true)
 		util.SendOK(w, photos)
+	})
+}
+
+// DeletePhotoHandler : is the handler to remove a photo in the database
+func DeletePhotoHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
+	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+
+		var queryToken = r.URL.Query().Get("token")
+
+		if len(queryToken) < 1 {
+			queryToken = r.Header.Get("token")
+		}
+
+		if len(queryToken) < 1 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(string("token is mandatory")))
+			return
+		}
+
+		tok, err := jwt.Parse(queryToken, func(t *jwt.Token) (interface{}, error) {
+			return []byte(cnf.SecretKey), nil
+		})
+
+		if err != nil {
+			util.SendErrorMessage(w, "You are not authorized")
+			return
+		}
+
+		claims := tok.Claims.(jwt.MapClaims)
+		var userID = claims["sub"].(float64) // gets the ID
+
+		// Get photoID
+		vars := mux.Vars(r)
+		strID := vars["id"]
+		photoID, err := strconv.Atoi(strID)
+
+		if err != nil {
+			util.SendErrorMessage(w, "id needs to be numeric")
+			return
+		}
+
+		if photoID < 1 {
+			util.SendErrorMessage(w, "id needs to be greater than 0")
+			return
+		}
+
+		photo, err := db.GetPhotoById(connection, photoID)
+		if err != nil {
+			util.SendError(w, err)
+			return
+		}
+
+		if photo.UserID != int(userID) {
+			util.SendErrorMessage(w, "you can only remove your own photo")
+			return
+		}
+
+		_, err = db.DeletePhotoByID(connection, photoID)
+		if err != nil {
+			util.SendError(w, err)
+			return
+		}
+		util.SendOKMessage(w, "Photo removed")
 	})
 }
 

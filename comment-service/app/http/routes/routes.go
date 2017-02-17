@@ -31,6 +31,11 @@ func setRESTRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Route
 		controllers.ListCommentsFromUser(db, cnf),
 	)).Methods("GET")
 
+	comments.Handle("/{id}/delete", negroni.New(
+		negroni.HandlerFunc(middleware.AccessControlHandler),
+		controllers.DeleteCommentHandler(db, cnf),
+	)).Methods("POST")
+
 	// Create a comment /comments
 	comments.Methods("POST").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AccessControlHandler),
