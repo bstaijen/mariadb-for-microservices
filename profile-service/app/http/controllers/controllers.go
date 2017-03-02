@@ -27,7 +27,7 @@ import (
 // CreateUserHandler creates a new user in the database. Password is saved as a hash.
 func CreateUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		user := &models.User{}
+		user := &models.UserCreate{}
 		err := util.RequestToJSON(r, user)
 		if err != nil {
 			util.SendBadRequest(w, errors.New("Bad json"))
@@ -64,9 +64,9 @@ func CreateUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 				}
 
 				type Token struct {
-					Token     string      `json:"token"`
-					ExpiresOn string      `json:"expires_on"`
-					User      models.User `json:"user"`
+					Token     string              `json:"token"`
+					ExpiresOn string              `json:"expires_on"`
+					User      models.UserResponse `json:"user"`
 				}
 
 				util.SendOK(w, &Token{
@@ -98,7 +98,7 @@ func DeleteUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 			return
 		}
 
-		user := &models.User{}
+		user := &models.UserResponse{}
 		err := util.RequestToJSON(r, user)
 		if err != nil {
 			util.SendBadRequest(w, errors.New("Bad json"))
@@ -143,7 +143,7 @@ func UpdateUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 			return
 		}
 
-		user := &models.User{}
+		user := &models.UserResponse{}
 		err := util.RequestToJSON(r, user)
 		if err != nil {
 			util.SendBadRequest(w, errors.New("bad json"))
@@ -168,15 +168,11 @@ func UpdateUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 		}
 
 		if err := user.Validate(); err == nil {
-			if err := user.ValidatePassword(); err == nil {
 
-				db.UpdateUser(connection, user)
+			db.UpdateUser(connection, user)
 
-				util.SendOK(w, user)
+			util.SendOK(w, user)
 
-			} else {
-				util.SendBadRequest(w, err)
-			}
 		} else {
 			util.SendBadRequest(w, err)
 		}

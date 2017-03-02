@@ -46,10 +46,10 @@ func CloseConnection(db *sql.DB) {
 }
 
 // GetUserByID returns an models.User identified by it's ID or a ErrUserNotFound error when the user cannot be found.
-func GetUserByID(db *sql.DB, ID int) (models.User, error) {
-	rows, err := db.Query("SELECT id, username, createdAt, password, email FROM users WHERE id = ?", ID)
+func GetUserByID(db *sql.DB, ID int) (models.UserResponse, error) {
+	rows, err := db.Query("SELECT id, username, createdAt, email FROM users WHERE id = ?", ID)
 	if err != nil {
-		return models.User{}, err
+		return models.UserResponse{}, err
 	}
 
 	if rows.Next() {
@@ -60,16 +60,16 @@ func GetUserByID(db *sql.DB, ID int) (models.User, error) {
 		var email string
 		err = rows.Scan(&id, &username, &createdAt, &password, &email)
 		if err != nil {
-			return models.User{}, err
+			return models.UserResponse{}, err
 		}
 
-		return models.User{ID: id, Username: username, CreatedAt: createdAt, Password: password, Email: email}, nil
+		return models.UserResponse{ID: id, Username: username, CreatedAt: createdAt, Email: email}, nil
 	}
-	return models.User{}, ErrUserNotFound
+	return models.UserResponse{}, ErrUserNotFound
 }
 
 // CreateUser create an user in the database and returns the ID of the user being inserted. This method returns a ErrUsernameIsNotUnique or ErrEmailIsNotUnique when the username or email of an user is not unique.
-func CreateUser(db *sql.DB, user *models.User) (int, error) {
+func CreateUser(db *sql.DB, user *models.UserCreate) (int, error) {
 	// check unique username
 	query := "SELECT * FROM users WHERE username = ?"
 	rows, err := db.Query(query, user.Username)
@@ -112,7 +112,7 @@ func CreateUser(db *sql.DB, user *models.User) (int, error) {
 }
 
 // UpdateUser updates the username and email of an user. (note: this method does not check if user is authorized to update this row)
-func UpdateUser(db *sql.DB, user *models.User) (int, error) {
+func UpdateUser(db *sql.DB, user *models.UserResponse) (int, error) {
 	_, err := db.Exec("UPDATE users SET username = ?, email = ? WHERE id = ?", user.Username, user.Email, user.ID)
 	if err != nil {
 		log.Errorf("Error inserting")
@@ -123,7 +123,7 @@ func UpdateUser(db *sql.DB, user *models.User) (int, error) {
 }
 
 // DeleteUser deletes an user from the database. Method does not check if the caller is authorized to perform this action. Method returns the number of rows affected by query. (should be 1)
-func DeleteUser(db *sql.DB, user *models.User) (int, error) {
+func DeleteUser(db *sql.DB, user *models.UserResponse) (int, error) {
 	if user.ID > 0 {
 		res, err := db.Exec("DELETE from users WHERE id = ?", user.ID)
 		if err != nil {
@@ -145,13 +145,13 @@ func DeleteUser(db *sql.DB, user *models.User) (int, error) {
 }
 
 // GetUsers returns a list of all database-users. Note: Consider implementing a paging function because this method returns EVERY users at once.
-func GetUsers(db *sql.DB) ([]models.User, error) {
+func GetUsers(db *sql.DB) ([]models.UserResponse, error) {
 
 	rows, err := db.Query("SELECT id, username, email, createdAt FROM users")
 	if err != nil {
 		return nil, err
 	}
-	persons := make([]models.User, 0)
+	persons := make([]models.UserResponse, 0)
 
 	for rows.Next() {
 		var id int
@@ -162,7 +162,7 @@ func GetUsers(db *sql.DB) ([]models.User, error) {
 		if err != nil {
 			return nil, err
 		}
-		persons = append(persons, models.User{ID: id, Username: username, CreatedAt: createdAt})
+		persons = append(persons, models.UserResponse{ID: id, Username: username, CreatedAt: createdAt})
 	}
 	return persons, nil
 }

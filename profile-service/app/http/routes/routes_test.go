@@ -263,8 +263,8 @@ func doRequest(db *sql.DB, cnf config.Config, method string, url string, body *b
 	return res
 }
 
-func getTestUser() *models.User {
-	user := &models.User{}
+func getTestUser() *models.UserCreate {
+	user := &models.UserCreate{}
 	user.ID = 1
 	user.Email = "username@example.com"
 	user.Password = "password"
@@ -274,7 +274,7 @@ func getTestUser() *models.User {
 	return user
 }
 
-func getTokenString(cnf config.Config, user *models.User, t *testing.T) string {
+func getTokenString(cnf config.Config, user *models.UserCreate, t *testing.T) string {
 	expiration := time.Now().Add(time.Hour * 24 * 31).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.ID,

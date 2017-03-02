@@ -63,6 +63,7 @@ func LoginHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 
 		// Retrieve the user from the database
 		databaseUser, _ := db.GetUserByUsername(connection, login.Username)
+		databaseUser.Password = "" // trick to prevent password from leaking to client
 
 		// Send the token and user back
 		data := &models.Token{

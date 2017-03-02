@@ -35,7 +35,7 @@ func TestCreateUser(t *testing.T) {
 	cnf := config.Config{}
 	cnf.SecretKey = "ABCDEF"
 
-	user := &models.User{}
+	user := &models.UserCreate{}
 	user.ID = 1
 	user.Email = "username@example.com"
 	user.Password = "password"
@@ -83,9 +83,9 @@ func TestCreateUser(t *testing.T) {
 
 	// Make sure response is alright
 	type Token struct {
-		Token     string      `json:"token"`
-		ExpiresOn string      `json:"expires_on"`
-		User      models.User `json:"user"`
+		Token     string              `json:"token"`
+		ExpiresOn string              `json:"expires_on"`
+		User      models.UserResponse `json:"user"`
 	}
 
 	response := &Token{}
@@ -141,7 +141,7 @@ func TestCreateUserWithoutUsername(t *testing.T) {
 	cnf := config.Config{}
 	cnf.SecretKey = "ABCDEF"
 
-	user := &models.User{}
+	user := &models.UserCreate{}
 
 	json, _ := json.Marshal(user)
 
@@ -173,7 +173,7 @@ func TestCreateUserWithoutPassword(t *testing.T) {
 	cnf := config.Config{}
 	cnf.SecretKey = "ABCDEF"
 
-	user := &models.User{}
+	user := &models.UserCreate{}
 	user.Email = "test@example.com"
 	user.Username = "username"
 
@@ -207,7 +207,7 @@ func TestCreateUserWithoutEmail(t *testing.T) {
 	cnf := config.Config{}
 	cnf.SecretKey = "ABCDEF"
 
-	user := &models.User{}
+	user := &models.UserCreate{}
 	user.Username = "username"
 
 	json, _ := json.Marshal(user)
@@ -250,7 +250,7 @@ func TestDeleteUser(t *testing.T) {
 	cnf := config.Config{}
 	cnf.SecretKey = "ABCDEF"
 
-	user := &models.User{}
+	user := &models.UserCreate{}
 	user.ID = 1
 	user.Email = "username@example.com"
 	user.Password = "password"
@@ -532,8 +532,8 @@ func TestTryDeleteOtherUser(t *testing.T) {
 	}
 }
 
-func getTestUser() *models.User {
-	user := &models.User{}
+func getTestUser() *models.UserCreate {
+	user := &models.UserCreate{}
 	user.ID = 1
 	user.Email = "username@example.com"
 	user.Password = "password"
@@ -543,7 +543,7 @@ func getTestUser() *models.User {
 	return user
 }
 
-func getTokenString(cnf config.Config, user *models.User, t *testing.T) string {
+func getTokenString(cnf config.Config, user *models.UserCreate, t *testing.T) string {
 	expiration := time.Now().Add(time.Hour * 24 * 31).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.ID,

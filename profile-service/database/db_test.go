@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetUserByID(t *testing.T) {
-	user := getTestUser()
+	user := getTestUserForCreation()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -44,7 +44,7 @@ func TestCreateUser(t *testing.T) {
 	defer db.Close()
 
 	// Define user
-	user := getTestUser()
+	user := getTestUserForCreation()
 
 	// Expected rows
 	rows := sqlmock.NewRows([]string{"count(*)"})
@@ -226,7 +226,7 @@ func TestQueryBuilder(t *testing.T) {
 // TestUniqueEmail
 func TestUniqueEmail(t *testing.T) {
 	// Mock user object
-	user1 := getTestUser()
+	user1 := getTestUserForCreation()
 	user1.ID = 1
 	user1.Username = "username1"
 
@@ -265,7 +265,7 @@ func TestUniqueEmail(t *testing.T) {
 // TestUniqueUsername
 func TestUniqueUsername(t *testing.T) {
 	// Mock user object
-	user1 := getTestUser()
+	user1 := getTestUserForCreation()
 	user1.ID = 1
 	user1.Username = "username1"
 
@@ -298,8 +298,8 @@ func TestUniqueUsername(t *testing.T) {
 	}
 }
 
-func getTestUser() *models.User {
-	user := &models.User{}
+func getTestUserForCreation() *models.UserCreate {
+	user := &models.UserCreate{}
 	user.ID = 1
 	user.Email = "username@example.com"
 	user.Password = "password"
@@ -307,5 +307,14 @@ func getTestUser() *models.User {
 	user.CreatedAt = time.Now()
 	hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 	user.Hash = string(hash)
+	return user
+}
+
+func getTestUser() *models.UserResponse {
+	user := &models.UserResponse{}
+	user.ID = 1
+	user.Email = "username@example.com"
+	user.Username = "username"
+	user.CreatedAt = time.Now()
 	return user
 }

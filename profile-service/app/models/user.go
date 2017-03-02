@@ -9,28 +9,49 @@ import (
 // lower_case private, upper_case public
 // Uppercase variable is mandatory for exposing to json
 
-// User model
-type User struct {
+// UserResponse model
+type UserResponse struct {
 	ID        int       `json:"id"`
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"createdAt"`
-	Password  string    `json:"password,omitempty"`
+}
+
+// UserCreate model
+type UserCreate struct {
+	ID        int       `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"createdAt"`
+	Password  string    `json:"password"`
 	Hash      string
 }
 
 // GetUsername returns the username of an user
-func (u *User) GetUsername() string {
+func (u *UserCreate) GetUsername() string {
 	return u.Username
 }
 
 // Print method of User
-func (u *User) Print() string {
+func (u *UserCreate) Print() string {
 	return fmt.Sprintf("%v (%v) - %v", u.Username, u.ID, u.CreatedAt)
 }
 
 // Validate returns an error when the username or email is to short.
-func (u *User) Validate() error {
+func (u *UserCreate) Validate() error {
+	if len(u.Username) < 1 {
+		return ErrUsernameTooShort
+	}
+
+	if len(u.Email) < 1 {
+		return ErrEmailTooShort
+	}
+
+	return nil
+}
+
+// Validate returns an error when the username or email is to short.
+func (u *UserResponse) Validate() error {
 	if len(u.Username) < 1 {
 		return ErrUsernameTooShort
 	}
@@ -43,7 +64,7 @@ func (u *User) Validate() error {
 }
 
 // ValidatePassword returns an error if the password is to small.
-func (u *User) ValidatePassword() error {
+func (u *UserCreate) ValidatePassword() error {
 	if len(u.Password) < 1 {
 		return ErrPasswordTooShort
 	}

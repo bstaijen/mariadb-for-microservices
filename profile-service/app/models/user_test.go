@@ -8,8 +8,8 @@ import (
 	"github.com/bstaijen/mariadb-for-microservices/profile-service/app/models"
 )
 
-func getSimpleUser() models.User {
-	user := models.User{}
+func getSimpleUser() models.UserCreate {
+	user := models.UserCreate{}
 	user.ID = 1
 	user.Username = "user"
 	user.Email = "user@example.com"
@@ -18,7 +18,7 @@ func getSimpleUser() models.User {
 }
 
 func TestGetUsername(t *testing.T) {
-	user := models.User{}
+	user := models.UserCreate{}
 	user.Username = "user"
 
 	expected := "user"
@@ -58,7 +58,7 @@ func TestValidate(t *testing.T) {
 }
 
 func TestTooShortUsername(t *testing.T) {
-	user := models.User{}
+	user := models.UserCreate{}
 	user.Username = ""
 	user.Password = "pass"
 	err := user.Validate()
@@ -73,7 +73,7 @@ func TestTooShortUsername(t *testing.T) {
 }
 
 func TestTooShortEMail(t *testing.T) {
-	user := models.User{}
+	user := models.UserCreate{}
 	user.Username = "user"
 	user.Email = ""
 	err := user.Validate()
@@ -88,7 +88,7 @@ func TestTooShortEMail(t *testing.T) {
 }
 
 func TestTooShortPassword(t *testing.T) {
-	user := models.User{}
+	user := models.UserCreate{}
 	user.Username = "user"
 	user.Password = ""
 	err := user.ValidatePassword()
