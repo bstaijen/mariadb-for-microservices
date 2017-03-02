@@ -20,6 +20,8 @@ app.controller('UserController', function ($scope, $window, LocalStorage, ApiSer
     $scope.votesTabVisible = false;
     $scope.photosTabVisible = true;
 
+    $scope.showLoading = false;
+
     // To load the picture on startup
     getPhotos();
 
@@ -69,20 +71,24 @@ app.controller('UserController', function ($scope, $window, LocalStorage, ApiSer
     };
 
     function getComments() {
+        $scope.showLoading = true;
         ApiService.getCommentsFromUser().then(
             function (response) {
                 console.info(response);
                 if (response.result) {
                     $scope.comment_tupel = response.result;
                 }
+                $scope.showLoading = false;
             }, function (error) {
                 console.error(error);
+                $scope.showLoading = false;
             }
         )
     }
 
 
     function getPhotos() {
+        $scope.showLoading = true;
 
         var page = $scope.photo_pages;
         var itemsPerPage = 10;
@@ -96,26 +102,32 @@ app.controller('UserController', function ($scope, $window, LocalStorage, ApiSer
                 if (response) {
                     $scope.photos = response;
                 }
+                $scope.showLoading = false;
             }, function (error) {
                 console.error(error);
+                $scope.showLoading = false;
             }
         );
     }
 
     function getVotes() {
+        $scope.showLoading = true;
         ApiService.getTheVotesFromUser().then(
             function (response) {
                 console.info(response);
                 if (response.result) {
                     $scope.voted_photos = response.result;
                 }
+                $scope.showLoading = false;
             }, function (error) {
                 console.error(error);
+                $scope.showLoading = false;
             }
         )
     }
 
     $scope.deleteComment = function(commentID) {
+        $scope.showLoading = true;
         ApiService.deleteComment(commentID).then(
             function(response){
                 console.info(response);
@@ -124,16 +136,18 @@ app.controller('UserController', function ($scope, $window, LocalStorage, ApiSer
                     if (tupel.comment.id === commentID) {
                         $scope.comment_tupel.splice(index, 1);
                     }
-                })
-
+                });
+                $scope.showLoading = false;
             },
             function(error){
                 console.error(error);
+                $scope.showLoading = false;
             }
         );
     };
 
     $scope.deletePhoto = function(photoID) {
+        $scope.showLoading = true;
         ApiService.deletePhoto(photoID).then(
             function(response){
                 console.info(response);
@@ -143,10 +157,11 @@ app.controller('UserController', function ($scope, $window, LocalStorage, ApiSer
                         $scope.photos.splice(index, 1);
                     }
                 })
-
+                $scope.showLoading = false;
             },
             function(error){
                 console.error(error);
+                $scope.showLoading = false;
             }
         );
     };

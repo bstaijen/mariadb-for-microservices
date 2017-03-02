@@ -11,9 +11,14 @@ app.controller('HomeController', function ($scope, ApiService) {
     // contains error messages
     $scope.errors = [];
 
+    // boolean for show a loading indicator
+    $scope.photosLoading = true;
+
     // load photos
     getPhotos();
     function getPhotos() {
+        $scope.photosLoading = true;
+
         var page = $scope.page;
         var itemsPerPage = 10;
         var offset = (page - 1) * itemsPerPage;
@@ -24,8 +29,9 @@ app.controller('HomeController', function ($scope, ApiService) {
 
                 $scope.hasMorePictures = (result.length == itemsPerPage);
 
-
                 $scope.photos = $.merge($scope.photos, result);
+
+                $scope.photosLoading = false;
 
             }, function (error) {
                 console.error(error);
@@ -33,6 +39,8 @@ app.controller('HomeController', function ($scope, ApiService) {
                 if (error.data == null && error.status == -1) {
                     $scope.errors.push("Error connecting to API. Maybe resource is offline?");
                 }
+
+                $scope.photosLoading = false;
             }
         );
     }
@@ -42,4 +50,5 @@ app.controller('HomeController', function ($scope, ApiService) {
         $scope.page = $scope.page + 1;
         getPhotos();
     }
+
 });

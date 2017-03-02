@@ -8,11 +8,13 @@
         <li role="presentation" class="pointer" ng-click="showVotesTab()" ng-class="votesTabVisible ? 'active' : ''"><a>Votes</a>
         </li>
     </ul>
+    <div ng-show="showLoading" class="loading"></div>
     <div class="panel" style="border-left: 1px solid #ddd;border-right: 1px solid #ddd;border-bottom: 1px solid #ddd;">
         <div ng-show="photosTabVisible" class="panel-body animated fadeIn">
             <div ng-repeat="photo in photos" class="list-group-item">
                 <div class="container-fluid pn mn">
                     <div class="col-sm-4">
+                        <p>{{photo.title}}</p>
                         <img ng-click="openImage(photo.id)" class="img-responsive pointer" ng-src="{{buildImageUrl(photo.filename)}}"/>
                     </div>
                     <div class="col-sm-4">
@@ -42,6 +44,7 @@
             <div ng-repeat="tupel in comment_tupel" class="list-group-item">
                 <div class="container-fluid pn mn">
                     <div class="col-sm-4">
+                        <p>{{tupel.photo.title}}</p>
                         <img ng-click="openImage(tupel.photo.id)" class="img-responsive pointer" ng-src="{{buildImageUrl(tupel.photo.filename)}}"/>
                     </div>
                     <div class="col-sm-4">
@@ -68,6 +71,7 @@
             <div ng-repeat="photo in voted_photos" class="list-group-item">
                 <div class="container-fluid pn mn">
                     <div class="col-md-4">
+                        <p>{{photo.title}}</p>
                         <img ng-click="openImage(photo.id)" class="img-responsive pointer" ng-src="{{buildImageUrl(photo.filename)}}"/>
                     </div>
                     <div class="col-md-4">

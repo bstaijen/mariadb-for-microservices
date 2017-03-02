@@ -17,6 +17,9 @@
             <i class="fa fa-3x fa-comment-o"></i>
         </button>
     </div>
+    <div class="text-center">
+        <i class="fa"></i><i ng-show="voteLoading" class="fa fa-loading"></i>
+    </div>
     <div class="panel-body text-center">
         <span class="text-muted">{{photo.totalVotes || 0}} votes - {{calcPerc(photo)}}</span><br>
         <span class="text-muted">{{photo.upvote_count || 0}} <i class="fa fa-thumbs-o-up"></i> - {{photo.downvote_count || 0}} <i class="fa fa-thumbs-o-down"></i> - {{photo.comment_count || 0}} <i class="fa fa-comment-o"></i></span>
@@ -25,11 +28,12 @@
         <div class="col-md-3"></div>
         <div class="col-md-6">
             <div class="comment-box">
-                <textarea maxlength="140" ng-model="comment_text" placeholder="Leave a nice comment :)"></textarea>
-                <button class="btn btn-success" ng-click="comment(photo)">Send</button>
+                <textarea maxlength="255" ng-model="comment_text" placeholder="Leave a nice comment :) (max 255 chars)"></textarea>
+                <button class="btn btn-success" ng-click="comment(photo)">Send</button><i ng-show="commentLoading" class="fa fa-loading"></i>
+                <div class="clearfix"></div>
             </div>
             <div class="clearfix"></div>
-            <table class="table table-striped mt10">
+            <table class="table table-striped">
                 <tbody>
                 <tr ng-repeat="comment in photo.comments | orderBy:'createdAt':true ">
                     <td> {{comment.username}} - {{comment.comment}}

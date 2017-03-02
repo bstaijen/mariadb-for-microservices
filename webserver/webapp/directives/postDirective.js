@@ -7,6 +7,8 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal, $location) 
         templateUrl: 'directives/postView.html',
         controller: function ($scope) {
 
+            $scope.commentLoading = false;
+            $scope.voteLoading = false;
             $scope.showMessages = false;
             $scope.page = 1;
 
@@ -68,7 +70,7 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal, $location) 
                     showSignInRequiredModal();
                     return;
                 }
-
+                $scope.voteLoading = true;
                 ApiService.upvote(usr.id, photo.id).then(function (resp) {
                     // If this is the first vote from this user then increase the number of total votes.
                     if (!photo.downvote && !photo.upvote) {
@@ -85,9 +87,10 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal, $location) 
                     // Let angular know which button to show on page
                     photo.downvote = false;
                     photo.upvote = true;
-
+                    $scope.voteLoading = false;
                 }, function (error) {
                     console.error(error);
+                    $scope.voteLoading = false;
                 });
 
             };
@@ -103,7 +106,7 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal, $location) 
                     showSignInRequiredModal();
                     return;
                 }
-
+                $scope.voteLoading = true;
                 ApiService.downvote(usr.id, photo.id).then(function (resp) {
                     // If this is the first vote from this user then increase the number of total votes.
                     if (!photo.downvote && !photo.upvote) {
@@ -120,9 +123,10 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal, $location) 
                     // Let angular know which button to show on page
                     photo.upvote = false;
                     photo.downvote = true;
-
+                    $scope.voteLoading = false;
                 }, function (error) {
                     console.error(error);
+                    $scope.voteLoading = false;
                 });
             };
 
@@ -132,7 +136,7 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal, $location) 
                     showSignInRequiredModal();
                     return;
                 }
-
+                $scope.commentLoading = true;
                 ApiService.comment(usr.id, photo.id, $scope.comment_text).then(
                     function (response) {
                         console.info(response);
@@ -141,9 +145,11 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal, $location) 
                         if ($scope.photo && $scope.photo.comments) {
                             $scope.photo.comments.push(response);
                         }
+                        $scope.commentLoading = false;
                     },
                     function (error) {
                         console.error(error);
+                        $scope.commentLoading = false;
                     }
                 );
             }

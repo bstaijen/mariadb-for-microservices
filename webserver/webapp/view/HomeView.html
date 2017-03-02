@@ -1,5 +1,6 @@
-<p ng-show="photos.length < 1" class="text-info text-center fs17">No photo's available.</p>
-<post ng-repeat="photo in photos" photo="photo"></post>
+<p ng-show="photosLoading" class="loading"></p>
+<p ng-show="photos.length < 1 && !photosLoading" class="text-info text-center fs17">There are no photos..</p>
+<post class="animated fadeInDown" ng-repeat="photo in photos" photo="photo"></post>
 <div ng-show="hasMorePictures && photos.length > 0" class="btn btn-success btn-block animated fadeIn"
      ng-click="loadNext()">Load more
 </div>

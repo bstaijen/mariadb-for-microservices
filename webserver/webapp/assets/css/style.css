@@ -83,11 +83,12 @@ body {
     border: 1px solid #F2F2F2;
     margin: 0 auto;
 }
-.comment-box button{
+.comment-box button, .comment-box i{
     float: right;
     letter-spacing: 0.3px;
     margin-right: 9px;
     margin-top: 9px;
+    margin-bottom: 9px;
     padding: 6px 15px;
 }
 
@@ -187,4 +188,21 @@ body {
 }
 .pointer {
     cursor:pointer;
+}
+.loading{
+    background: rgba(0,0,0,0.08) url('../ajax-loader.gif') no-repeat center center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99999;
+}
+.fa-loading{
+    display: inline-block;
+    background: url('../ajax-loader.gif') no-repeat;
+    background-size: 30px 30px;
+    width: 30px;
+    height: 30px;
+    z-index: 99999;
 }
