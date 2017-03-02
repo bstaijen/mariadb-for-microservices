@@ -90,6 +90,7 @@ func GetComments(db *sql.DB, photoID, offset, nrOfRows int) ([]*sharedModels.Com
 	return responses, nil
 }
 
+// GetCommentsByUserID get all comments from a user.
 func GetCommentsByUserID(db *sql.DB, userID, offset, nrOfRows int) ([]*sharedModels.CommentResponse, error) {
 	rows, err := db.Query("SELECT id, user_id, photo_id, comment, createdAt FROM comments WHERE user_id=? ORDER BY createdAt DESC LIMIT ?, ?", userID, offset, nrOfRows)
 	if err != nil {

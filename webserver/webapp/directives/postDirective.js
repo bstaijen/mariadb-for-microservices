@@ -1,4 +1,4 @@
-app.directive('post', function (LocalStorage, ApiService, $uibModal) {
+app.directive('post', function (LocalStorage, ApiService, $uibModal, $location) {
     return {
         restrict: 'E',
         scope: {
@@ -6,7 +6,6 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal) {
         },
         templateUrl: 'directives/postView.html',
         controller: function ($scope) {
-
 
             $scope.showMessages = false;
             $scope.page = 1;
@@ -150,11 +149,15 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal) {
             }
             $scope.calcPerc = function (photo) {
 
+                if (!photo) {
+                    return '0 %';
+                }
+
                 var down = photo.downvote_count < 1 ? 0 : photo.downvote_count * 100;
                 var up = photo.upvote_count < 1 ? 0 : photo.upvote_count * 100;
 
                 if (down < 1 && up < 1) {
-                    return '0%';
+                    return '0 %';
                 } else if (down < 1) {
                     return '100 %'
                 } else if (up < 1) {
@@ -189,6 +192,16 @@ app.directive('post', function (LocalStorage, ApiService, $uibModal) {
                 modalInstance.result.then(function () {
                 }, function () {
                 });
+            }
+
+            $scope.openImage = function() {
+                console.log("openImage called");
+                var photo = $scope.photo;
+                if (!photo) {
+                    return;
+                }
+
+                $location.path('/photo/' + photo.id);
             }
         }
     }

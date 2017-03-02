@@ -21,9 +21,8 @@ type Photo struct {
 	YouDownvote   bool                            `json:"downvote"`
 	Comments      []*sharedModels.CommentResponse `json:"comments"`
 	CommentCount  int                             `json:"comment_count"`
-
-	ContentType string
-	Image       []byte
+	ContentType   string                          `json:"-"`
+	Image         []byte                          `json:"-"`
 }
 
 // CreatePhoto can be used for creating a new photo object

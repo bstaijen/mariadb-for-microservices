@@ -20,6 +20,15 @@ func InitRoutes(db *sql.DB, cnf config.Config) *mux.Router {
 }
 
 func setRESTRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Router {
+	health := router.PathPrefix("/health").Subrouter()
+	health.Methods("OPTIONS").Handler(negroni.New(
+		negroni.HandlerFunc(middleware.AcceptOPTIONS),
+	))
+	health.Methods("GET").Handler(negroni.New(
+		negroni.HandlerFunc(middleware.AccessControlHandler),
+		controllers.HealthHandler(db, cnf),
+	))
+
 	votes := router.PathPrefix("/votes").Subrouter()
 	votes.Methods("OPTIONS").Handler(negroni.New(
 		negroni.HandlerFunc(middleware.AcceptOPTIONS),

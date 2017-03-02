@@ -68,16 +68,21 @@ func GetPhotoByFilename(db *sql.DB, filename string) (*models.Photo, error) {
 	if len(photos) > 0 {
 		return photos[0], err
 	}
-	return nil, err
+	return nil, err 
 }
 
 // GetPhotoById returns a photo indexed by id
 func GetPhotoById(db *sql.DB, id int) (*models.Photo, error) {
-	photos, err := selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo  FROM photos WHERE id = ?", id)
+	photos, err := selectQuery(db, "SELECT id, user_id, filename, title, createdAt, contentType, photo FROM photos WHERE id = ?", id)
+
+	log.Info(photos)
+
 	if len(photos) > 0 {
 		return photos[0], err
+	} else if len(photos) == 0 {
+		return nil, errors.New("photo not found")
 	}
-	return nil, nil
+	return nil, err
 }
 
 func GetPhotos(db *sql.DB, items []*sharedModels.PhotoRequest) ([]*sharedModels.PhotoResponse, error) {

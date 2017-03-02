@@ -201,6 +201,10 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
             profile: composeProfileUrl,
             photo: composePhotoUrl
         },
+        getPhotoByID: function(photoID) {
+            var url = composePhotoUrl('/image/' + photoID + '?token=' + LocalStorage.getToken());
+            return get(url);
+        },
         getPhotosForUser: function(user_id, offset, nr_of_rows) {
             var url = composePhotoUrl('/image/' + user_id + "/list?offset=" + offset + "&rows=" + nr_of_rows);
             return get(url);

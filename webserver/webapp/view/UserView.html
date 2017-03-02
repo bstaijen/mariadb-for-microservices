@@ -13,7 +13,7 @@
             <div ng-repeat="photo in photos" class="list-group-item">
                 <div class="container-fluid pn mn">
                     <div class="col-sm-4">
-                        <img class="img-responsive" ng-src="{{buildImageUrl(photo.filename)}}"/>
+                        <img ng-click="openImage(photo.id)" class="img-responsive pointer" ng-src="{{buildImageUrl(photo.filename)}}"/>
                     </div>
                     <div class="col-sm-4">
                         <ul class="list-group">
@@ -42,7 +42,7 @@
             <div ng-repeat="tupel in comment_tupel" class="list-group-item">
                 <div class="container-fluid pn mn">
                     <div class="col-sm-4">
-                        <img class="img-responsive" ng-src="{{buildImageUrl(tupel.photo.filename)}}"/>
+                        <img ng-click="openImage(tupel.photo.id)" class="img-responsive pointer" ng-src="{{buildImageUrl(tupel.photo.filename)}}"/>
                     </div>
                     <div class="col-sm-4">
                         You commented '<span class="text-muted">{{tupel.comment.comment}}</span>'.
@@ -68,7 +68,7 @@
             <div ng-repeat="photo in voted_photos" class="list-group-item">
                 <div class="container-fluid pn mn">
                     <div class="col-md-4">
-                        <img class="img-responsive" ng-src="{{buildImageUrl(photo.filename)}}"/>
+                        <img ng-click="openImage(photo.id)" class="img-responsive pointer" ng-src="{{buildImageUrl(photo.filename)}}"/>
                     </div>
                     <div class="col-md-4">
                         <button class="btn disabled" ng-show="photo.upvote == true"

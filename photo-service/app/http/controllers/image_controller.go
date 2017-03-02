@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/bstaijen/mariadb-for-microservices/photo-service/config"
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
@@ -111,6 +112,39 @@ func ListByUserIDHandler(connection *sql.DB, cnf config.Config) negroni.HandlerF
 		photos = findResources(cnf, photos, id, true, true, true)
 
 		util.SendOK(w, photos)
+	})
+}
+
+func GetPhotoByID(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
+	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+
+		userID, err := getUserIDFromRequest(cnf, r)
+		if err != nil {
+			util.SendError(w, err)
+			return
+		}
+
+		vars := mux.Vars(r)
+		strID := vars["id"]
+		id, err := strconv.Atoi(strID)
+		if err != nil {
+			util.SendErrorMessage(w, fmt.Sprintf("id must be integer, instead got %v", id))
+			return
+		}
+
+		photo, err := db.GetPhotoById(connection, id)
+		if err != nil {
+			util.SendError(w, err)
+			return
+		}
+
+		logrus.Info(photo.ID)
+
+		photos := make([]*models.Photo, 0)
+		photos = append(photos, photo)
+		photos = findResources(cnf, photos, userID, true, true, true)
+
+		util.SendOK(w, photos[0])
 	})
 }
 

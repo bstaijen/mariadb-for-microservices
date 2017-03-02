@@ -1,4 +1,4 @@
-app.controller('UserController', function ($scope, $window, LocalStorage, ApiService) {
+app.controller('UserController', function ($scope, $window, LocalStorage, ApiService, $location) {
 
     if (!LocalStorage.hasToken() && !LocalStorage.hasUser()) {
         console.info('Token and/or User is missing from LocalStorage.');
@@ -150,5 +150,13 @@ app.controller('UserController', function ($scope, $window, LocalStorage, ApiSer
             }
         );
     };
+
+    $scope.openImage = function(id) {
+        if (!id) {
+            console.warn('openImage: id is empty');
+            return;
+        }
+        $location.path('/photo/' + id);
+    }
 
 });

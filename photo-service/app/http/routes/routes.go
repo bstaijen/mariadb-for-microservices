@@ -70,6 +70,12 @@ func setPhotoRoutes(db *sql.DB, cnf config.Config, router *mux.Router) *mux.Rout
 		controllers.HotHandler(db, cnf),
 	)).Methods("GET")
 
+	// Add image for user /image/{id}
+	image.Handle("/{id}", negroni.New(
+		negroni.HandlerFunc(middleware.AccessControlHandler),
+		controllers.GetPhotoByID(db, cnf),
+	)).Methods("GET")
+
 	// Subrouter /images/{file}
 	images := router.PathPrefix("/images/{file}").Subrouter()
 

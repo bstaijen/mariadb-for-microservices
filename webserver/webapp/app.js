@@ -51,6 +51,11 @@ var app = angular.module("MariaDBApp", ['ngRoute', 'ngFileUpload', 'ui.bootstrap
                 controller: "UserController",
                 activetab: 'user'
             })
+            .when("/photo/:id",{
+                templateUrl: "view/PhotoDetailsView.html",
+                controller: "PhotoDetailsController",
+                activetab: 'photo'
+            })
             .otherwise({
                 redirectTo: "/"
             });

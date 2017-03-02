@@ -27,14 +27,14 @@
     <link rel="shortcut icon" href="https://mariadb.com/sites/default/files/favicon.png" type="image/png">
 </head>
 <body>
-<nav class="navbar navbar-mariadb navbar-fixed-top" ng-controller="NavController">
+<nav class="navbar navbar-mariadb navbar-fixed-top" ng-controller="NavController" role="navigation">
     <div class="container-fluid">
         <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar1">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" style="background-color: #7a83a1;">
                 <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
+                <span class="icon-bar" style="background-color:white;" ></span>
+                <span class="icon-bar" style="background-color:white;" ></span>
+                <span class="icon-bar" style="background-color:white;" ></span>
             </button>
             <a class="navbar-brand" href="#/"><img src="assets/logo.svg" alt="XOX3">
             </a>
@@ -109,5 +109,6 @@
 <script src="controllers/TopRatedController.js"></script>
 <script src="controllers/HotController.js"></script>
 <script src="controllers/UserController.js"></script>
+<script src="controllers/PhotoDetailsController.js"></script>
 </body>
 </html>

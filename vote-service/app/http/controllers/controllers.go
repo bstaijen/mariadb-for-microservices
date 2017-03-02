@@ -141,6 +141,16 @@ func GetVotesFromAUser(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 	})
 }
 
+func HealthHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
+	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+
+		log.Println("Health Handler called")
+
+		util.SendOKMessage(w, "I am healthy")
+
+	})
+}
+
 func getPhotos(cnf config.Config, input []*sharedModels.TopRatedPhotoResponse) []*sharedModels.PhotoResponse {
 	type Req struct {
 		Requests []*sharedModels.TopRatedPhotoResponse `json:"requests"`
