@@ -42,11 +42,13 @@ func CloseConnection(db *sql.DB) {
 
 // Create a vote in the database
 func Create(db *sql.DB, vote *sharedModels.VoteCreateRequest) error {
+	// Delete previous vote (if any).
 	_, err := db.Exec("DELETE FROM votes WHERE user_id=? AND photo_id=?", vote.UserID, vote.PhotoID)
 	if err != nil {
 		return err
 	}
 
+	// Insert new vote
 	_, err = db.Exec("INSERT INTO votes(user_id, photo_id, upvote, downvote) VALUES(?,?,?,?)", vote.UserID, vote.PhotoID, vote.Upvote, vote.Downvote)
 	if err != nil {
 		return err

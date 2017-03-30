@@ -22,7 +22,7 @@ func TestGetUserByID(t *testing.T) {
 
 	// Expectation: select user where id == user.ID
 	timeNow := time.Now().UTC()
-	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "password", "email"}).AddRow(user.ID, user.Username, timeNow, user.Hash, user.Email)
+	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "email"}).AddRow(user.ID, user.Username, timeNow, user.Email)
 	mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(user.ID).WillReturnRows(selectByIDRows)
 
 	// Execute the method

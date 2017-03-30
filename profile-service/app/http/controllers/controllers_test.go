@@ -70,7 +70,7 @@ func TestCreateUser(t *testing.T) {
 
 	// Expectation: get user by id
 	timeNow := time.Now().UTC()
-	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "password", "email"}).AddRow(user.ID, user.Username, timeNow, "PasswordHashPlaceHolder", user.Email)
+	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "email"}).AddRow(user.ID, user.Username, timeNow, user.Email)
 	mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(user.ID).WillReturnRows(selectByIDRows)
 
 	handler := CreateUserHandler(db, cnf)
@@ -368,7 +368,7 @@ func TestGetUserByIndex(t *testing.T) {
 
 	// Database expectations
 	timeNow := time.Now().UTC()
-	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "password", "email"}).AddRow(user.ID, user.Username, timeNow, "PasswordHashPlaceHolder", user.Email)
+	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "email"}).AddRow(user.ID, user.Username, timeNow, user.Email)
 	mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(user.ID).WillReturnRows(selectByIDRows)
 
 	// Router

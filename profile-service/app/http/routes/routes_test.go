@@ -128,7 +128,7 @@ func TestPOSTUsers(t *testing.T) {
 	defer db.Close()
 
 	// Expected rows
-	rows := sqlmock.NewRows([]string{"count(*)"})
+	rows := sqlmock.NewRows([]string{"count (*)"})
 
 	// Expectation: check for unique username
 	mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(user.Username).WillReturnRows(rows)
@@ -138,6 +138,10 @@ func TestPOSTUsers(t *testing.T) {
 
 	// Expectation: insert into database
 	mock.ExpectExec("INSERT INTO users").WithArgs(user.Username, user.Email, TestHash{}).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	timeNow := time.Now().UTC()
+	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "email"}).AddRow(user.ID, user.Username, timeNow, user.Email)
+	mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(user.ID).WillReturnRows(selectByIDRows)
 
 	// Mock config
 	cnf := config.Config{}
@@ -156,6 +160,7 @@ func TestPOSTUsers(t *testing.T) {
 
 	// Make sure response statuscode expectation is met
 	if res.Result().StatusCode != 200 {
+		t.Logf(string(res.Body.Bytes()))
 		t.Errorf("Expected statuscode to be 200 but got %v", res.Result().StatusCode)
 	} else {
 		t.Logf("Result statuscode %v. (As expected)", res.Result().StatusCode)
@@ -174,7 +179,7 @@ func TestGETUserByID(t *testing.T) {
 
 	// Database expectations
 	timeNow := time.Now().UTC()
-	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "password", "email"}).AddRow(user.ID, user.Username, timeNow, "PasswordHashPlaceHolder", user.Email)
+	selectByIDRows := sqlmock.NewRows([]string{"id", "username", "createdAt", "email"}).AddRow(user.ID, user.Username, timeNow, user.Email)
 	mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(user.ID).WillReturnRows(selectByIDRows)
 
 	// Mock config
