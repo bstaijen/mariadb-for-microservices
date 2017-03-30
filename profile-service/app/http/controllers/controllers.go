@@ -46,7 +46,12 @@ func CreateUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 					util.SendBadRequest(w, err)
 					return
 				}
-				createdUser, _ := db.GetUserByID(connection, createdID)
+				createdUser, err := db.GetUserByID(connection, createdID)
+				if err != nil {
+					util.SendBadRequest(w, err)
+					return
+				}
+
 				// create JWT object with claims
 				expiration := time.Now().Add(time.Hour * 24 * 31).Unix()
 				token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -64,15 +69,15 @@ func CreateUserHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 				}
 
 				type Token struct {
-					Token     string              `json:"token"`
-					ExpiresOn string              `json:"expires_on"`
-					User      models.UserResponse `json:"user"`
+					Token     string               `json:"token"`
+					ExpiresOn string               `json:"expires_on"`
+					User      *models.UserResponse `json:"user"`
 				}
 
 				util.SendOK(w, &Token{
 					Token:     tokenString,
 					ExpiresOn: strconv.Itoa(int(expiration)),
-					User:      createdUser,
+					User:      &createdUser,
 				})
 
 			} else {

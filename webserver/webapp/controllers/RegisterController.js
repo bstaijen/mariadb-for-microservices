@@ -11,15 +11,20 @@ app.controller('RegisterController', function ($scope, $window, ApiService, Loca
                 $scope.successMessages.push("Registration successful");
                 emptyFields();
 
-                LocalStorage.setToken(data.token);
+
 
                 if (data.user) {
                     //console.info(data.user);
-                    LocalStorage.setUser(data.user);
+                    var user = data.user;
+                    if (user.id && user.email && user.username) {
+                        LocalStorage.setToken(data.token);
+                        LocalStorage.setUser(data.user);
+
+                        $window.location.href = '#/';
+                        return;
+                    }
                 }
-
-
-                $window.location.href = '#/';
+                $scope.errorMessages.push("Something went wrong. Please try again.");
 
             }, function (response) {
                 console.log(response);

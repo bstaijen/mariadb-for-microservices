@@ -23,18 +23,17 @@ import (
 func CreateHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
+		// Get the tokenstring from the request
 		var queryToken = r.URL.Query().Get("token")
-
 		if len(queryToken) < 1 {
 			queryToken = r.Header.Get("token")
 		}
-
 		if len(queryToken) < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(string("token is mandatory")))
+			util.SendErrorMessage(w, "token is mandatory")
 			return
 		}
 
+		// Parse the tokenstring to a Token object through the jwt parser
 		secretKey := cnf.SecretKey
 		tok, err := jwt.Parse(queryToken, func(t *jwt.Token) (interface{}, error) {
 			return []byte(secretKey), nil
@@ -45,19 +44,18 @@ func CreateHandler(connection *sql.DB, cnf config.Config) negroni.HandlerFunc {
 			return
 		}
 
+		// Get the user from the token object
 		claims := tok.Claims.(jwt.MapClaims)
 		var ID = claims["sub"].(float64) // gets the ID
 
-		// 1.parse body
+		// STEP 1 : parse body
 		voteCreateObject := &sharedModels.VoteCreateRequest{}
-		voteCreateObject.UserID = int(ID)
-
 		err = util.RequestToJSON(r, voteCreateObject)
 		if err != nil {
 			util.SendErrorMessage(w, "bad json")
 			return
 		}
-
+		voteCreateObject.UserID = int(ID)
 		if voteCreateObject.Upvote == voteCreateObject.Downvote {
 			util.SendErrorMessage(w, "can not vote for none or both")
 			return
@@ -118,6 +116,7 @@ func GetVotesFromAUser(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 
 		photos := getPhotos(cnf, photoIDs)
 
+		// merge
 		t := make([]*sharedModels.HasVotedRequest, 0)
 		g := make([]*sharedModels.VoteCountRequest, 0)
 		for _, v := range photos {

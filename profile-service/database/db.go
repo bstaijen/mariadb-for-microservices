@@ -56,9 +56,8 @@ func GetUserByID(db *sql.DB, ID int) (models.UserResponse, error) {
 		var id int
 		var username string
 		var createdAt time.Time
-		var password string
 		var email string
-		err = rows.Scan(&id, &username, &createdAt, &password, &email)
+		err = rows.Scan(&id, &username, &createdAt, &email)
 		if err != nil {
 			return models.UserResponse{}, err
 		}
