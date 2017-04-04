@@ -89,8 +89,7 @@ func GetVotesFromAUser(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 		}
 
 		if len(queryToken) < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(string("token is mandatory")))
+			util.SendErrorMessage(w, "Token is mandatory")
 			return
 		}
 
@@ -105,7 +104,7 @@ func GetVotesFromAUser(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 		}
 
 		claims := tok.Claims.(jwt.MapClaims)
-		var ID = claims["sub"].(float64) // gets the ID
+		var ID = claims["sub"].(float64) // gets the UserID
 
 		// get offset and rows
 		offset, rows := helper.PaginationFromRequest(r)
@@ -118,7 +117,6 @@ func GetVotesFromAUser(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 
 		photos := getPhotos(cnf, photoIDs)
 
-		// TODO : put this in a method.
 		t := make([]*sharedModels.HasVotedRequest, 0)
 		g := make([]*sharedModels.VoteCountRequest, 0)
 		for _, v := range photos {
