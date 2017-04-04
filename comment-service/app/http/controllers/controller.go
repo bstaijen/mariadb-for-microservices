@@ -119,12 +119,13 @@ func ListCommentsFromUser(connection *sql.DB, cnf config.Config) negroni.Handler
 			w.Write([]byte(string("token is mandatory")))
 			return
 		}
-
 		tok, err := jwt.Parse(queryToken, func(t *jwt.Token) (interface{}, error) {
 			return []byte(cnf.SecretKey), nil
 		})
 
 		if err != nil {
+			logrus.Info(err)
+			logrus.Info(err.Error())
 			util.SendErrorMessage(w, "You are not authorized")
 			return
 		}
