@@ -14,6 +14,8 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/urfave/negroni"
 
+	"fmt"
+
 	"github.com/bstaijen/mariadb-for-microservices/shared/helper"
 	sharedModels "github.com/bstaijen/mariadb-for-microservices/shared/models"
 	"github.com/bstaijen/mariadb-for-microservices/shared/util"
@@ -120,9 +122,12 @@ func GetVotesFromAUser(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 		t := make([]*sharedModels.HasVotedRequest, 0)
 		g := make([]*sharedModels.VoteCountRequest, 0)
 		for _, v := range photos {
+
+			fmt.Printf("PhotoID %v, UserID %v \n", v.ID, ID)
+
 			t = append(t, &sharedModels.HasVotedRequest{
 				PhotoID: v.ID,
-				UserID:  v.UserID,
+				UserID:  int(ID),
 			})
 			g = append(g, &sharedModels.VoteCountRequest{
 				PhotoID: v.ID,
