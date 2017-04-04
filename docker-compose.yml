@@ -2,7 +2,7 @@ version: '2'
 
 services:
     webserver:
-        image: "webserver"
+        image: bstaijen/mariadb-microservice-webserver:demo
         depends_on:
             - authentication
             - photo
@@ -23,7 +23,7 @@ services:
         labels:
         - "com.mariadb.host=webserver"
     authentication:
-        image: "authenticationsvc"
+        image: bstaijen/mariadb-microservice-authenticationsvc:demo
         depends_on: 
             - registrator
         ports:
@@ -41,7 +41,7 @@ services:
         labels:
         - "com.mariadb.host=authenticationsvc"
     photo:
-        image: "photosvc"
+        image: bstaijen/mariadb-microservice-photosvc:demo
         depends_on: 
             - registrator
         ports:
@@ -62,7 +62,7 @@ services:
         labels:
         - "com.mariadb.host=photosvc"
     vote:
-        image: "votesvc"
+        image: bstaijen/mariadb-microservice-votesvc:demo
         depends_on: 
             - registrator
         ports:
@@ -81,7 +81,7 @@ services:
         labels:
         - "com.mariadb.host=votesvc"
     comment:
-        image: "commentsvc"
+        image: bstaijen/mariadb-microservice-commentsvc:demo3
         depends_on: 
             - registrator
         ports:
@@ -90,16 +90,19 @@ services:
         environment:
         - "PORT=5004"
         - "PROFILE_SERVICE_URL=http://profile:5000/"
+        - "PHOTO_SERVICE_URL=http://photo:5002/"
+        - "VOTE_SERVICE_URL=http://vote:5003/"
         - "DB_USERNAME=comment_service"
         - "DB_PASSWORD=password"
         - "DB_HOST=db"
         - "DB_PORT=3306"
         - "DB=CommentService"
+        - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         - "affinity:com.mariadb.host!=commentsvc"
         labels:
         - "com.mariadb.host=commentsvc"
     profile:
-        image: "profilesvc"
+        image: bstaijen/mariadb-microservice-profilesvc:demo
         depends_on: 
             - registrator
         ports:
@@ -117,7 +120,7 @@ services:
         labels:
         - "com.mariadb.host=profilesvc"
     db:
-        image: bstaijen/mariadb-microservice-database:0.3
+        image: bstaijen/mariadb-microservice-database:demo
         depends_on: 
             - registrator
         restart: always
@@ -155,4 +158,15 @@ services:
         - "8500:8500"
         - "8600:53/udp"
         command: "-server -bootstrap -ui-dir /ui"
+        restart: always
+    vizualizer:
+        image: bstaijen/mariadb-microservice-vizualizersvc:demo
+        ports:
+        - 3000:3000
+        environment:
+        - SWARM_HOST
+        - SWARM_CA
+        - SWARM_KEY
+        - SWARM_CERT
+        - "constraint:node==master"
         restart: always

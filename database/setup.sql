@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS CommentService.comments (id INT NOT NULL AUTO_INCREME
 CREATE USER 'authentication_service'@'%' IDENTIFIED BY 'password';
 GRANT ALL ON ProfileService.* TO 'authentication_service'@'%';
 
-CREATE USER 'profile_service'@'%' IDENTIFIED BY 'password';
+CREATE USER 'profile_service'@'%' IDENTIFIED BY 'password'; 
 GRANT ALL ON ProfileService.* TO 'profile_service'@'%';
 
 CREATE USER 'comment_service'@'%' IDENTIFIED BY 'password';
@@ -25,3 +25,7 @@ GRANT ALL ON PhotoService.* TO 'photo_service'@'%';
 
 CREATE USER 'vote_service'@'%' IDENTIFIED BY 'password';
 GRANT ALL ON VoteService.* TO 'vote_service'@'%';
+
+INSERT INTO ProfileService.users(`username`, `email`, `password`) VALUES ('bstaijen','bjorge.staijen@mariadb.com','$2a$10$1CSYrh6MYJdBoAnJMcQ22.sZ2QBfWL7VlfpQayOt8otdOa1Myjt7O');
+
+INSERT INTO PhotoService.photos(`title`, `user_id`, `filename`, `contentType`, `photo`) VALUES ('The MariaDB seal',1,'94049535630251382.png','image/png',  LOAD_FILE('/docker-entrypoint-initdb.d/mariadb.png'));

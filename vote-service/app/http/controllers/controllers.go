@@ -116,7 +116,7 @@ func GetVotesFromAUser(connection *sql.DB, cnf config.Config) negroni.HandlerFun
 
 		photos := getPhotos(cnf, photoIDs)
 
-		// merge
+		// TODO : put this in a method.
 		t := make([]*sharedModels.HasVotedRequest, 0)
 		g := make([]*sharedModels.VoteCountRequest, 0)
 		for _, v := range photos {

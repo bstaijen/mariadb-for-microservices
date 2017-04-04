@@ -116,6 +116,8 @@ func HasVoted(db *sql.DB, items []*sharedModels.HasVotedRequest) ([]*sharedModel
 		}
 	}
 
+	fmt.Println(query)
+
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err

@@ -202,8 +202,13 @@ app.factory('ApiService', function ($http, $q, LocalStorage, Upload) {
             photo: composePhotoUrl
         },
         getPhotoByID: function(photoID) {
-            var url = composePhotoUrl('/image/' + photoID + '?token=' + LocalStorage.getToken());
-            return get(url);
+            if (LocalStorage.hasToken()) {
+                var url = composePhotoUrl('/image/' + photoID + '?token=' + LocalStorage.getToken());
+                return get(url);
+            } else {
+                var url = composePhotoUrl('/image/' + photoID);
+                return get(url);
+            }
         },
         getPhotosForUser: function(user_id, offset, nr_of_rows) {
             var url = composePhotoUrl('/image/' + user_id + "/list?offset=" + offset + "&rows=" + nr_of_rows);
