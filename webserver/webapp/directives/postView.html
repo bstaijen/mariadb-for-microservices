@@ -36,7 +36,7 @@
             <table class="table table-striped">
                 <tbody>
                 <tr ng-repeat="comment in photo.comments | orderBy:'createdAt':true ">
-                    <td> {{comment.username}} - {{comment.comment}}
+                    <td class="fs18"> {{comment.username}} - {{comment.comment}}
                         <br>
                         <span class="text-muted">{{displayMoment(comment.createdAt)}}</span>
                     </td>

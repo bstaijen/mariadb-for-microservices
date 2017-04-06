@@ -73,7 +73,7 @@ body {
     border-radius: 4px 4px 0 0;
     color: #777777;
     float: left;
-    font-size: 14px;
+    font-size: 18px;
     height: 82px;
     letter-spacing: 0.3px;
     padding: 20px;
@@ -82,6 +82,9 @@ body {
     outline:none;
     border: 1px solid #F2F2F2;
     margin: 0 auto;
+}
+.fs18 {
+    font-size: 18px;
 }
 .comment-box button, .comment-box i{
     float: right;
