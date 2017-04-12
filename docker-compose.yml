@@ -20,6 +20,7 @@ services:
         - "PHOTO_URL=http://photo:5002"
         - "VOTE_URL=http://vote:5003"
         - "COMMENT_URL=http://comment:5004"
+        - "constraint:node==node1"
         labels:
         - "com.mariadb.host=webserver"
     authentication:

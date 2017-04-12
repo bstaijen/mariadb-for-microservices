@@ -1,8 +1,14 @@
-var app = require('express')();
+var express = require('express');
+var app = express()
+var path = require("path");
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var port = 3000;
 var refreshTime = 2000;
+
+console.log(__dirname);
+console.log(path.join(__dirname, './static/icons'))
+app.use('/static/icons', express.static(path.join(__dirname, './static/icons')));
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/static/index.html');

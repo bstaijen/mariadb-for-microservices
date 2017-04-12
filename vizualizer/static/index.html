@@ -52,17 +52,29 @@
       var container_per_line = ((host_width / (container_width + gutter)) >> 0);
       var getImageUrl = function (d) {
         if (d && d.image) {
-          if (d.image.indexOf('webapp') >= 0) {
-            return "https://cloud.githubusercontent.com/assets/559953/8238706/3af4cc2e-15ac-11e5-99e9-6feaaf842790.png";
-          } else if (d.image.indexOf('aerospike-server') >= 0 || d.image.indexOf('redis') >= 0 || d.image.indexOf('mongo') >=0 || d.image.indexOf('mariadb') >= 0) {
-            return "https://cloud.githubusercontent.com/assets/559953/8245172/638d81a2-15df-11e5-9b6c-ec5d4d5c471c.png";
-          } else if (d.image.indexOf('haproxy') >= 0 || d.image.indexOf('interlock') >= 0)  {
-            return "https://cloud.githubusercontent.com/assets/559953/8245174/6622b7fc-15df-11e5-9e36-5f3368642941.png";
+          if (d.image.indexOf('mariadb-microservice-photosvc') >= 0) {
+            return "./static/icons/photo-service.png"
+          } else if (d.image.indexOf('consul') >= 0) {
+            return "./static/icons/consul.png";
+          } else if (d.image.indexOf('registrator') >= 0) {
+            return "./static/icons/registrator.png";
+          } else if (d.image.indexOf('mariadb-microservice-authenticationsvc') >= 0) {
+            return "./static/icons/authentication-service.png";
+          } else if (d.image.indexOf('mariadb-microservice-database') >= 0) {
+            return "./static/icons/database.png";
+          } else if (d.image.indexOf('mariadb-microservice-commentsvc') >= 0) {
+            return "./static/icons/comment-service.png";
+          } else if (d.image.indexOf('mariadb-microservice-profilesvc') >= 0) {
+            return "./static/icons/profile-service.png";
+          } else if (d.image.indexOf('mariadb-microservice-voteservice') >= 0) {
+            return "./static/icons/vote-service.png";
+          } else if (d.image.indexOf('mariadb-microservice-webserver') >= 0) {
+            return "./static/icons/webserver.png";
           } else {
-            return "https://cloud.githubusercontent.com/assets/559953/8238706/3af4cc2e-15ac-11e5-99e9-6feaaf842790.png";
+          return "./static/icons/service.png";
           }
         } else {
-          return "https://cloud.githubusercontent.com/assets/559953/8238706/3af4cc2e-15ac-11e5-99e9-6feaaf842790.png";
+          return "./static/icons/service.png";
         }
       };
       var drawViz = function(hosts) {
