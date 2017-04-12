@@ -59,7 +59,7 @@ services:
         labels:
         - "com.mariadb.host=photosvc"
     vote:
-        image: bstaijen/mariadb-microservice-voteservice:demo
+        image: bstaijen/mariadb-microservice-votesvc:demo
         ports:
             - "5003:5003"
         restart: always
