@@ -17,19 +17,8 @@ docker run --restart=always -d \
 # Create master node
 docker-machine create \
     --driver virtualbox \
-    --virtualbox-memory 512 \
+    --virtualbox-memory 8192 \
    --swarm --swarm-master \
     --swarm-discovery="consul://$(docker-machine ip consul):8500" \
     --engine-opt="cluster-store=consul://$(docker-machine ip consul):8500" \
     --engine-opt="cluster-advertise=eth1:2376" master
-
-# Create 4 nodes
-for N in 0 1; do 
-    docker-machine create \
-        --driver virtualbox \
-        --virtualbox-memory 512 \
-        --swarm \
-        --swarm-discovery="consul://$(docker-machine ip consul):8500" \
-        --engine-opt="cluster-store=consul://$(docker-machine ip consul):8500" \
-        --engine-opt="cluster-advertise=eth1:2376" node$N;
-done

@@ -1,8 +1,8 @@
-version: '2'
+version: '3'
 
 services:
     webserver:
-        image: bstaijen/mariadb-microservice-webserver:latest
+        image: bstaijen/mariadb-microservice-webserver:demo
         depends_on:
             - authentication
             - photo
@@ -23,7 +23,9 @@ services:
         labels:
         - "com.mariadb.host=webserver"
     authentication:
-        image: bstaijen/mariadb-microservice-authenticationsvc:latest
+        image: bstaijen/mariadb-microservice-authenticationsvc:demo
+        depends_on:
+          - db
         ports:
             - "5001:5001"
         restart: always 
@@ -39,7 +41,9 @@ services:
         labels:
         - "com.mariadb.host=authenticationsvc"
     photo:
-        image: bstaijen/mariadb-microservice-photosvc:latest
+        image: bstaijen/mariadb-microservice-photosvc:demo
+        depends_on:
+          - db
         ports:
             - "5002:5002"
         restart: always 
@@ -58,7 +62,9 @@ services:
         labels:
         - "com.mariadb.host=photosvc"
     vote:
-        image: bstaijen/mariadb-microservice-votesvc:latest
+        image: bstaijen/mariadb-microservice-votesvc:demo
+        depends_on:
+          - db
         ports:
             - "5003:5003"
         restart: always
@@ -75,13 +81,15 @@ services:
         labels:
         - "com.mariadb.host=votesvc"
     comment:
-        image: bstaijen/mariadb-microservice-commentsvc:latest
+        image: bstaijen/mariadb-microservice-commentsvc:demo
+        depends_on:
+          - db
         ports:
             - "5004:5004"
         restart: always
         environment:
         - "PORT=5004"
-        - "PROFILE_SERVICE_URL=http://profile:5005/"
+        - "PROFILE_SERVICE_URL=http://profile:5000/"
         - "PHOTO_SERVICE_URL=http://photo:5002/"
         - "VOTE_SERVICE_URL=http://vote:5003/"
         - "DB_USERNAME=comment_service"
@@ -94,12 +102,14 @@ services:
         labels:
         - "com.mariadb.host=commentsvc"
     profile:
-        image: bstaijen/mariadb-microservice-profilesvc:latest
+        image: bstaijen/mariadb-microservice-profilesvc:demo
+        depends_on:
+          - db
         ports:
             - "5000:5000"
-        restart: always
+        restart: always 
         environment:
-        - "PORT=500"
+        - "PORT=5000"
         - "DB_USERNAME=profile_service"
         - "DB_PASSWORD=password"
         - "DB_HOST=db"
@@ -110,52 +120,15 @@ services:
         labels:
         - "com.mariadb.host=profilesvc"
     db:
-        image: bstaijen/mariadb-microservice-database:latest
-        restart: always
+        image: bstaijen/mariadb-microservice-database:sn
         environment:
-        - "MYSQL_ROOT_PASSWORD=password"
         - "CLUSTER_NAME=galeracluster"
-        - "SERVICE_NAME=mariadb-galera"
-        - "DEBUG=true"
-        - "BACKEND=consul"
+        - "DISCOVERY_SERVICE=192.168.99.164:2379"
+        - "MYSQL_ROOT_PASSWORD=password"
+        - "XTRABACKUP_PASSWORD=password"
         - "affinity:com.mariadb.host!=galeracluster"
         labels:
         - "com.mariadb.host=galeracluster"
         ports:
         - 3306:3306
-        - 4567-4568:4567-4568
-        - 4444:4444
-    registrator:
-        image: gliderlabs/registrator:v7
-        depends_on: 
-            - consul
-        hostname: registrator
-        volumes:
-        - "/var/run/docker.sock:/tmp/docker.sock"
-        command: -internal consul://consul:8500
-        restart: always
-        environment:
-        - "affinity:com.mariadb.host!=registrator"
-        labels:
-        - "com.mariadb.host=registrator"
-    consul:
-        image: "progrium/consul:latest"
-        hostname: "consul"
-        ports:
-        - "8400:8400"
-        - "8500:8500"
-        - "8600:53/udp"
-        command: "-server -bootstrap -ui-dir /ui"
-        restart: always
-    vizualizer:
-        image: bstaijen/mariadb-microservice-vizualizersvc:demo
-        ports:
-        - 3000:3000
-        environment:
-        - SWARM_HOST
-        - SWARM_CA
-        - SWARM_KEY
-        - SWARM_CERT
-        - "constraint:node==master"
-        restart: always
-    
+        restart: always 

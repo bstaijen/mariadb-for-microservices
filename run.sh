@@ -10,5 +10,5 @@ export SWARM_HOST=tcp://$(docker-machine ip $SWARM_MACHINE_NAME):3376
 
 # Start running containers in the cluster and make 
 # sure that registrator is running on each of them
-docker-compose -f docker-compose-registrator.yml up -d
-docker-compose -f docker-compose-registrator.yml scale registrator=3
+docker-compose up -d
+docker-compose scale registrator=3
