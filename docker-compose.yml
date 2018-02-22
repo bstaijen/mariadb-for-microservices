@@ -1,0 +1,161 @@
+version: '2'
+
+services:
+    webserver:
+        image: bstaijen/mariadb-microservice-webserver:latest
+        depends_on:
+            - authentication
+            - photo
+            - vote
+            - comment
+            - profile
+        ports:
+            - "4999:4999"
+        restart: always
+        environment:
+        - "affinity:com.mariadb.host!=webserver"
+        - "PORT=4999"
+        - "PROFILE_URL=http://profile:5000"
+        - "AUTHENTICATION_URL=http://authentication:5001"
+        - "PHOTO_URL=http://photo:5002"
+        - "VOTE_URL=http://vote:5003"
+        - "COMMENT_URL=http://comment:5004"
+        labels:
+        - "com.mariadb.host=webserver"
+    authentication:
+        image: bstaijen/mariadb-microservice-authenticationsvc:latest
+        ports:
+            - "5001:5001"
+        restart: always 
+        environment:
+        - "PORT=5001"
+        - "DB_USERNAME=profile_service"
+        - "DB_PASSWORD=password"
+        - "DB_HOST=db"
+        - "DB_PORT=3306"
+        - "DB=ProfileService"
+        - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        - "affinity:com.mariadb.host!=authenticationsvc"
+        labels:
+        - "com.mariadb.host=authenticationsvc"
+    photo:
+        image: bstaijen/mariadb-microservice-photosvc:latest
+        ports:
+            - "5002:5002"
+        restart: always 
+        environment:
+        - "PORT=5002"
+        - "COMMENT_SERVICE_URL=http://comment:5004/"
+        - "VOTE_SERVICE_URL=http://vote:5003/"
+        - "PROFILE_SERVICE_URL=http://profile:5000/"
+        - "DB_USERNAME=photo_service"
+        - "DB_PASSWORD=password"
+        - "DB_HOST=db"
+        - "DB_PORT=3306"
+        - "DB=PhotoService"
+        - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        - "affinity:com.mariadb.host!=photosvc"
+        labels:
+        - "com.mariadb.host=photosvc"
+    vote:
+        image: bstaijen/mariadb-microservice-votesvc:latest
+        ports:
+            - "5003:5003"
+        restart: always
+        environment:
+        - "PORT=5003"
+        - "DB_USERNAME=vote_service"
+        - "DB_PASSWORD=password"
+        - "DB_HOST=db"
+        - "DB_PORT=3306"
+        - "DB=VoteService"
+        - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        - "PHOTO_SERVICE_URL=http://photo:5002/"
+        - "affinity:com.mariadb.host!=votesvc"
+        labels:
+        - "com.mariadb.host=votesvc"
+    comment:
+        image: bstaijen/mariadb-microservice-commentsvc:latest
+        ports:
+            - "5004:5004"
+        restart: always
+        environment:
+        - "PORT=5004"
+        - "PROFILE_SERVICE_URL=http://profile:5005/"
+        - "PHOTO_SERVICE_URL=http://photo:5002/"
+        - "VOTE_SERVICE_URL=http://vote:5003/"
+        - "DB_USERNAME=comment_service"
+        - "DB_PASSWORD=password"
+        - "DB_HOST=db"
+        - "DB_PORT=3306"
+        - "DB=CommentService"
+        - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        - "affinity:com.mariadb.host!=commentsvc"
+        labels:
+        - "com.mariadb.host=commentsvc"
+    profile:
+        image: bstaijen/mariadb-microservice-profilesvc:latest
+        ports:
+            - "5000:5000"
+        restart: always
+        environment:
+        - "PORT=500"
+        - "DB_USERNAME=profile_service"
+        - "DB_PASSWORD=password"
+        - "DB_HOST=db"
+        - "DB_PORT=3306"
+        - "DB=ProfileService"
+        - "SECRET_KEY=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        - "affinity:com.mariadb.host!=profilesvc"
+        labels:
+        - "com.mariadb.host=profilesvc"
+    db:
+        image: bstaijen/mariadb-microservice-database:latest
+        restart: always
+        environment:
+        - "MYSQL_ROOT_PASSWORD=password"
+        - "CLUSTER_NAME=galeracluster"
+        - "SERVICE_NAME=mariadb-galera"
+        - "DEBUG=true"
+        - "BACKEND=consul"
+        - "affinity:com.mariadb.host!=galeracluster"
+        labels:
+        - "com.mariadb.host=galeracluster"
+        ports:
+        - 3306:3306
+        - 4567-4568:4567-4568
+        - 4444:4444
+    registrator:
+        image: gliderlabs/registrator:v7
+        depends_on: 
+            - consul
+        hostname: registrator
+        volumes:
+        - "/var/run/docker.sock:/tmp/docker.sock"
+        command: -internal consul://consul:8500
+        restart: always
+        environment:
+        - "affinity:com.mariadb.host!=registrator"
+        labels:
+        - "com.mariadb.host=registrator"
+    consul:
+        image: "progrium/consul:latest"
+        hostname: "consul"
+        ports:
+        - "8400:8400"
+        - "8500:8500"
+        - "8600:53/udp"
+        command: "-server -bootstrap -ui-dir /ui"
+        restart: always
+    vizualizer:
+        image: bstaijen/mariadb-microservice-vizualizersvc:demo
+        ports:
+        - 3000:3000
+        environment:
+        - SWARM_HOST
+        - SWARM_CA
+        - SWARM_KEY
+        - SWARM_CERT
+        - "constraint:node==master"
+        restart: always
+    
